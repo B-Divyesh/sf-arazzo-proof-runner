@@ -1,0 +1,13 @@
+{
+  "slug": "arazzo-proof-runner",
+  "title": "Arazzo Proof Runner",
+  "territory": "devtools-data",
+  "user": "An API owner experimenting with OpenAPI Arazzo who needs a small local runner that turns a multi-step workflow into a reproducible evidence report for tests and integration reviews.",
+  "smallest_useful_product": "CLI supports a documented Arazzo subset, executes against a selected environment, captures redacted request/response metadata and assertions, compares two runs, and writes a static HTML/JSON proof bundle.",
+  "success_measure": "Runs three representative multi-step Arazzo workflows deterministically in CI and makes a changed response assertion visible in a one-file report.",
+  "artifact_class": "cli",
+  "monetization": "free",
+  "constraints": "Never serialize authorization values; require an explicit environment file; track the evolving Arazzo specification and clearly label unsupported features.",
+  "confidence": 3,
+  "state": "RESEARCHED"
+}
