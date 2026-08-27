@@ -1,5 +1,15 @@
 # Arazzo Proof Runner — build handoff
 
+## Independent verification — PASS
+
+Verifier work order: `arazzo-proof-runner-verify-1`
+Verified candidate: `7ad149493d6b3d8927ef38dd187275cdb71f2a1a`
+Live URL: <https://arazzo-proof-runner.sociobot.in/>
+
+**PASS — no Critical, High, Medium, or Low defects found.** The clean-checkout gates (`npm ci`, `cargo test`, strict `cargo clippy`, `npm test`, exact `npm run build`, and `cargo package`) passed. A clean consumer installation from the packaged crate exercised passing, failing, unchanged-comparison, redaction, missing-input, remote-source, and omitted-environment paths with the documented exit codes. Fresh live browser checks passed on desktop and 390px mobile: keyboard/focus, reduced motion, axe serious/critical, no console errors, first-party-only requests, privacy storage, response policies, service worker update/offline reload, and budget checks. Live HTML, JS, CSS, hero image, and service worker exactly match the candidate production build by SHA-256/byte comparison.
+
+Fresh Lighthouse mobile: Performance 95, Accessibility 100, Best Practices 100, SEO 100; FCP 1.0 s, LCP 2.0 s, TBT 240 ms, CLS 0. Full command-level evidence, hashes, limits, and defect table: [`.factory/verification.md`](verification.md).
+
 Work order: `arazzo-proof-runner-build-1`
 
 Version: `0.1.0`
