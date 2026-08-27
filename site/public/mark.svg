@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Arazzo Proof Runner mark</title>
+  <path fill="#171a16" d="M5 34h14v21H5zM25 15h14v40H25zM45 25h14v30H45z"/>
+  <path fill="none" stroke="#365b32" stroke-width="6" d="M4 56h56"/>
+  <path fill="none" stroke="#bbcf72" stroke-width="3" d="m11 42 21-20 20 12"/>
+</svg>
