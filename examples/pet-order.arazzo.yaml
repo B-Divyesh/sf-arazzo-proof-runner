@@ -1,0 +1,39 @@
+arazzo: 1.0.1
+info:
+  title: Pet order proof
+  version: 1.0.0
+sourceDescriptions:
+  - name: petApi
+    url: ./pet-order.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: orderPet
+    inputs:
+      type: object
+      required: [petName]
+      properties:
+        petName: {type: string}
+    steps:
+      - stepId: createPet
+        operationId: createPet
+        requestBody:
+          contentType: application/json
+          payload:
+            name: $inputs.petName
+        successCriteria:
+          - condition: $statusCode == 201
+        outputs:
+          petId: $response.body#/id
+      - stepId: orderFood
+        operationId: orderForPet
+        parameters:
+          - name: petId
+            in: path
+            value: $steps.createPet.outputs.petId
+        requestBody:
+          contentType: application/json
+          payload:
+            sku: $env.foodSku
+        successCriteria:
+          - condition: $statusCode == 201
+          - condition: $response.body#/accepted == true

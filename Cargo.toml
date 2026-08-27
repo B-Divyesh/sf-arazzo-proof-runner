@@ -1,0 +1,32 @@
+[package]
+name = "arazzo-proof-runner"
+version = "0.1.0"
+edition = "2024"
+description = "Local Arazzo subset runner that emits redacted proof reports"
+license = "MIT"
+repository = "https://github.com/B-Divyesh/sf-arazzo-proof-runner"
+homepage = "https://arazzo-proof-runner.sociobot.in"
+readme = "README.md"
+keywords = ["arazzo", "openapi", "testing", "cli"]
+categories = ["command-line-utilities", "development-tools::testing"]
+exclude = ["site/", ".factory/", "dist/", "output/"]
+
+[[bin]]
+name = "arazzo-proof"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+
+[dev-dependencies]
+tempfile = "3.20"
+
+[profile.release]
+lto = "thin"
+strip = true
+codegen-units = 1

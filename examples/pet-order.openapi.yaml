@@ -1,0 +1,17 @@
+openapi: 3.1.0
+info:
+  title: Pet order example
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:4010
+paths:
+  /pets:
+    post:
+      operationId: createPet
+      responses:
+        '201': {description: Created}
+  /pets/{petId}/orders:
+    post:
+      operationId: orderForPet
+      responses:
+        '201': {description: Created}
