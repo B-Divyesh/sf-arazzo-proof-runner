@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://arazzo-proof-runner.sociobot.in/sitemap.xml

@@ -101,9 +101,7 @@ fn value(value: &serde_json::Value) -> String {
 }
 
 fn optional_value(value: Option<&serde_json::Value>) -> String {
-    value
-        .map(|value| pretty(value))
-        .unwrap_or_else(|| "—".to_owned())
+    value.map(pretty).unwrap_or_else(|| "—".to_owned())
 }
 
 fn escape(input: &str) -> String {

@@ -1,4 +1,5 @@
 use crate::model::{Change, Comparison, ComparisonSummary, ProofBundle, StepEvidence};
+use crate::redact::{REDACTED, sensitive_header};
 use crate::report::render_comparison;
 use anyhow::{Context, Result};
 use serde_json::{Value, to_value};
@@ -32,7 +33,7 @@ pub fn compare_proofs(baseline: &ProofBundle, current: &ProofBundle) -> Comparis
                     step_id: id.to_owned(),
                     field: "step".to_owned(),
                     before: None,
-                    after: to_value(step).ok(),
+                    after: to_value(step).ok().map(scrub_sensitive_fields),
                 });
             }
             (Some(step), None) => {
@@ -40,7 +41,7 @@ pub fn compare_proofs(baseline: &ProofBundle, current: &ProofBundle) -> Comparis
                 changes.push(Change {
                     step_id: id.to_owned(),
                     field: "step".to_owned(),
-                    before: to_value(step).ok(),
+                    before: to_value(step).ok().map(scrub_sensitive_fields),
                     after: None,
                 });
             }
@@ -140,10 +141,37 @@ fn compare_field<T: serde::Serialize + PartialEq>(
         changes.push(Change {
             step_id: step_id.to_owned(),
             field: field.to_owned(),
-            before: to_value(before).ok().or(Some(Value::Null)),
-            after: to_value(after).ok().or(Some(Value::Null)),
+            before: to_value(before)
+                .ok()
+                .map(scrub_sensitive_fields)
+                .or(Some(Value::Null)),
+            after: to_value(after)
+                .ok()
+                .map(scrub_sensitive_fields)
+                .or(Some(Value::Null)),
         });
     }
+}
+
+fn scrub_sensitive_fields(mut value: Value) -> Value {
+    match &mut value {
+        Value::Object(map) => {
+            for (key, child) in map {
+                if sensitive_header(key) {
+                    *child = Value::String(REDACTED.to_owned());
+                } else {
+                    *child = scrub_sensitive_fields(std::mem::take(child));
+                }
+            }
+        }
+        Value::Array(items) => {
+            for item in items {
+                *item = scrub_sensitive_fields(std::mem::take(item));
+            }
+        }
+        _ => {}
+    }
+    value
 }
 
 #[cfg(test)]
@@ -212,5 +240,18 @@ mod tests {
                 .iter()
                 .any(|change| change.field == "assertions")
         );
+    }
+
+    #[test]
+    fn never_copies_authorization_values_into_comparisons() {
+        let baseline = proof(200, true);
+        let mut current = baseline.clone();
+        current.steps[0]
+            .request
+            .headers
+            .insert("Authorization".into(), "Bearer do-not-write".into());
+        let serialized = serde_json::to_string(&compare_proofs(&baseline, &current)).unwrap();
+        assert!(!serialized.contains("do-not-write"));
+        assert!(serialized.contains(REDACTED));
     }
 }

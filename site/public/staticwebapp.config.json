@@ -1,0 +1,21 @@
+{
+  "globalHeaders": {
+    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "X-Content-Type-Options": "nosniff"
+  },
+  "routes": [
+    {
+      "route": "/assets/*",
+      "headers": { "Cache-Control": "public, max-age=31536000, immutable" }
+    },
+    {
+      "route": "/proof-strata.webp",
+      "headers": { "Cache-Control": "public, max-age=2592000" }
+    },
+    {
+      "route": "/sw.js",
+      "headers": { "Cache-Control": "no-cache" }
+    }
+  ]
+}
