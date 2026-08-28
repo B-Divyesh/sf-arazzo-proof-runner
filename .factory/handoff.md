@@ -1,53 +1,90 @@
-# Arazzo Proof Runner — adversarial review handoff
-
-Work order: `arazzo-proof-runner-review-1`
-
-Reviewed: 2026-08-28
-
-Candidate: `5716673d97177d3fc0626d08136015a238fe2b96`
-Live URL: <https://arazzo-proof-runner.sociobot.in/>
+# Arazzo Proof Runner — polish round 1 handoff
 
 ## Outcome
 
-**FAIL.** The full report is [review-1.md](review-1.md).
+All findings in `.factory/review-1.md` are resolved. No earlier review or polish report existed. The repaired static site and CLI were pushed to `main` and deployed to <https://arazzo-proof-runner.sociobot.in/>.
 
-Blocking findings:
+Implementation commits:
 
-1. The first screen does not name the intended API-owner audience.
-2. There is no one-click web demo or `arazzo-proof demo` sandbox.
-3. `.factory/claims.json` and `@claim:` tests are absent despite many public claims.
-4. `/demo` and unknown paths use the generic Azure Static Web Apps 404.
+- `efe104a` — isolated CLI/web demo, claims, routing, copy, metadata, policies, tests, and evidence
+- `d6981a2` — dark-mode contrast and mobile interaction gates
+- `f843470` — finding-by-finding polish record and final claim coverage
+- `02f50a3` — 404 dark-mode contrast found during the live cold check
 
-The review also records a serious mobile Axe issue, incomplete route metadata and shared structure, missing route-focus behavior, a non-runnable first-use command, two README sentences over 22 words, unclear terminology, and missing external-link disclosure.
+## Product changes
 
-## What was done
+- Added `arazzo-proof demo`. It starts a loopback fixture, runs the real bundled three-step checkout, and writes a proof bundle under a unique system temporary directory.
+- Added one-click `?demo=1` with a persistent “sample data, nothing is saved” banner, reset, and “Start for real.” Web state is memory-only.
+- Rewrote the first screen to identify API owners, the job, the report contents, and the first action.
+- Added `.factory/claims.json` with 12 independently runnable claim commands and unique `@claim:` tags.
+- Added a shared route skeleton, route focus announcements, back/hash focus restoration, complete metadata, original-art social/touch images, `/demo`, and a styled 404 with a real 404 status.
+- Added the three-step usage path, privacy limits, runnable install/demo commands, and all review-requested copy changes.
+- Added validation for external references, callbacks, webhooks, OAuth flows, and retry policies before requests run.
+- Preserved the concrete-and-moss visual thesis and recorded derivative asset provenance in `.factory/design.md`.
 
-- Opened the live site cold in fresh Chromium contexts at 390 × 844 and 1440 × 900 and recorded the pre-scroll interpretation.
-- Audited every landing and README sentence with whitespace-delimited word counts, plus headings and actions.
-- Checked `/demo`, `?demo=1`, the specimen toggle, browser storage, banner/reset/start controls, `.factory/demo.md`, and `arazzo-proof demo` from a fresh temp directory.
-- Checked the missing claims manifest and inventoried every claim-like statement on the landing page, README, Privacy, and Terms routes with a concrete test recommendation.
-- Tested live metadata, titles, headings, landmarks, links, 404 behavior, route focus, touch targets, console errors, and Axe at mobile width.
-- Exercised first-party-only network behavior and offline reload after service-worker activation.
-- Crawled all advertised landing links and hash targets.
-- Ran the repository gate from a clean local clone.
-- Changed only `.factory/review-1.md` and this handoff; product code was not modified.
+The exhaustive finding map is in `.factory/polish-1.md`. Demo isolation is documented in `.factory/demo.md`; sentence counts and terminology are in `.factory/copy-audit.md`.
 
 ## Verification evidence
 
-- `npm ci`: pass, 0 vulnerabilities.
-- `npm test` from clean clone: pass — 5 Rust unit tests, 2 CLI tests, 3 workflow tests, 1 doctest, 4 site tests.
-- Vite build within that gate: pass — 2.08 kB JS, 10.85 kB CSS.
-- Live root, `/privacy/`, `/terms/`, and GitHub destination: HTTP 200.
-- Live `/demo` and an arbitrary unknown route: HTTP 404 with generic Azure page.
-- `arazzo-proof demo`: exit 2, unrecognized subcommand.
-- Live Axe at 390 px: one serious `scrollable-region-focusable` issue on `#install-command`; one moderate nested-complementary-landmark issue.
-- Live root: no console errors, one `h1`, one `main`, no page overflow at 390 px.
-- Offline reload after first visit: pass for `/` and `/privacy/`.
-- Network observation: same-origin requests only; no cookies or Web Storage/IndexedDB data observed. The service-worker cache was present.
-- Link crawl: no dead advertised links; external GitHub links returned 200.
+Final fresh clone: `/tmp/arazzo-release-3Rm23C/repo` from commit `02f50a3`.
 
-## What remains
+- Every command in `.factory/claims.json`: 12/12 passed independently.
+- `npm test`: 5 Rust unit tests, 1 doctest, 8 CLI/workflow/claim integration tests, and 10 browser/copy tests passed.
+- Browser coverage: every route at 390×844 and 1440×900 in light and dark themes; zero Axe violations and zero valid-page console errors.
+- Interaction coverage: keyboard scroll region, route/hash/back focus, live announcements, 44×44 targets, reduced motion, 200% text, and no horizontal page overflow passed.
+- Privacy: all public-route requests remained same-origin; cookies, localStorage, sessionStorage, and IndexedDB remained empty through the demo flow.
+- Offline: demo and Privacy reloaded after the browser context was switched offline.
+- `cargo package --allow-dirty`: passed; 27 files, 175.7 KiB unpacked and 45.8 KiB compressed in the clean-clone check.
+- Static budgets: 3.37 kB JavaScript, 14.00 kB CSS, 208 kB hero image.
+- Local Lighthouse: performance 92, accessibility 100, best practices 100, SEO 100 (`.factory/evidence/lighthouse-local.json`).
+- Live Lighthouse: performance 91, accessibility 100, best practices 100, SEO 100 (`.factory/evidence/live/lighthouse-live.json`).
 
-Implement the six acceptance changes at the end of `review-1.md`, then rerun the review from fresh browser contexts and a clean clone. A subsequent reviewer should not accept the product until all blocking findings are gone and no more than three minor findings remain.
+Screenshots:
 
-The earlier independent build verification remains in [verification.md](verification.md) as historical evidence. Its PASS predates this stricter first-read/demo/claims review and should not be treated as the current disposition.
+- `.factory/evidence/home-mobile.png`
+- `.factory/evidence/demo-mobile.png`
+- `.factory/evidence/home-desktop.png`
+- `.factory/evidence/demo-desktop.png`
+- `.factory/evidence/privacy-mobile.png`
+- `.factory/evidence/terms-mobile.png`
+- `.factory/evidence/404-mobile.png`
+- `.factory/evidence/live/root/screenshot-desktop.png`
+- `.factory/evidence/live/root/screenshot-mobile.png`
+- `.factory/evidence/live/demo/screenshot-desktop.png`
+- `.factory/evidence/live/demo/screenshot-mobile.png`
+
+## Deployment and cold live check
+
+Deployment command:
+
+```sh
+npm ci
+npm run build:site
+/opt/fleet/lib/deploy-static.sh arazzo-proof-runner dist/site
+```
+
+Final deployment ID: `2b3830ff-948e-4691-9103-1f4a31466eda`.
+
+Cold public checks after the final deployment:
+
+- `/`, `/?demo=1`, `/privacy/`, `/terms/`, `robots.txt`, `sitemap.xml`, social image, and touch icon: HTTP 200.
+- `/demo`: redirects to `/?demo=1`, then HTTP 200.
+- `/not-a-real-route`: product-authored page with HTTP 404.
+- Factory `verify-url.sh`: root and demo both passed with one `h1`, `lang=en`, a main landmark, image alt text, and zero console errors.
+- Playwright + Axe: 20 public route/theme/viewport combinations passed with zero violations and no valid-page console errors.
+- Live demo reset and storage isolation passed in a fresh 390px context.
+- Live service-worker demo and Privacy reload passed offline.
+
+## Run and verify
+
+```sh
+cargo run -- demo
+npm ci
+npm test
+npm run build:site
+cargo package
+```
+
+## Known gaps and next steps
+
+No acceptance gap remains. Registry publication is intentionally left to factory release automation, as required by the CLI publishing contract.

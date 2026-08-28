@@ -155,4 +155,4 @@ Evidence screenshots are under `.factory/evidence/`. All live rows were rechecke
 | Mobile touch/overflow | All controls measure at least 44×44; 390px and 200% text show no page overflow. | reduced-motion/mobile-control test |
 | Dark/light contrast | Axe runs every public route across both color schemes and both required viewports. | all-route Axe test |
 | Reduced motion | Reduced-motion media query removes transitions; browser assertion checks the computed duration. | reduced-motion test |
-| Performance | Built JS 3.37 kB, CSS 13.98 kB, hero 208 kB; local Lighthouse 92/100/100/100. | performance-budget test; `lighthouse-local.json` |
+| Performance | Built JS 3.37 kB, CSS 14.00 kB, hero 208 kB; local Lighthouse 92/100/100/100 and live 91/100/100/100. | performance-budget test; `.factory/evidence/lighthouse-local.json`; `.factory/evidence/live/lighthouse-live.json` |
