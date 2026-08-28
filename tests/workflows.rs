@@ -181,9 +181,10 @@ workflows:
 fn operation_path_and_parameter_substitution_work() {
     let server = serve(vec![("GET /health?verbose=true ", r#"{"healthy":true}"#)]);
     let temp = tempdir().unwrap();
-    let openapi: serde_json::Value =
-        serde_yaml::from_str(&common_openapi(&server).replace("openapi: 3.1.0", "openapi: 3.0.3"))
-            .unwrap();
+    let openapi: serde_json::Value = serde_yaml::from_str(
+        &common_openapi("http://127.0.0.1:9").replace("openapi: 3.1.0", "openapi: 3.0.3"),
+    )
+    .unwrap();
     write(
         &temp.path().join("openapi.json"),
         &serde_json::to_string_pretty(&openapi).unwrap(),

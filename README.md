@@ -116,7 +116,7 @@ npm run build:site       # static site -> dist/site/
 cargo package
 ```
 
-The test suite covers the documented CLI, browser, accessibility, privacy, and offline behavior. Claim commands are listed in [.factory/claims.json](.factory/claims.json).
+Claim commands are listed in [.factory/claims.json](.factory/claims.json).
 
 ## Deploy
 

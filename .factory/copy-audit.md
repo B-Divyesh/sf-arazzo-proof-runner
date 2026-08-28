@@ -62,7 +62,6 @@ Landing headings and actions are also within the limits: “Run Arazzo workflows
 | 12 | Invalid or unsupported input exits 2 before writing a partial proof bundle. |
 | 7 | `--json` keeps the same exit codes. |
 | 7 | The CLI does not prompt for input. |
-| 14 | The test suite covers the documented CLI, browser, accessibility, privacy, and offline behavior. |
 | 8 | Claim commands are listed in `.factory/claims.json`. |
 | 8 | The factory deploys `dist/site/` as a static site. |
 | 6 | Build it with `npm run build:site`. |
