@@ -39,7 +39,7 @@ Audited 28 August 2026 after the round-three rewrite. Counts are whitespace-deli
 | 9 | “The quoteCart assertion now fails: expected USD, received EUR.” |
 | 2 | “Demo reset.” |
 
-Landing headings and actions are within the limits: “Run Arazzo workflows and save a proof bundle” (8), “Try it with sample data” (5), “View install command” (3), “How it works” (3), “What the CLI does not do” (6), “Supported Arazzo features and explicit limits” (6), “Reset demo” (2), and “Start for real” (3).
+Landing headings and actions are within the limits: “Run Arazzo workflows and save a proof bundle” (8), “Try it with sample data” (5), “View install command” (3), “How it works” (3), “What the CLI does not do” (6), “Supported Arazzo features and explicit limits” (6), “Reset demo” (2), and “Start for real” (3). “Built by Param Factory” (4) is the shared footer attribution.
 
 ## README sentences
 
