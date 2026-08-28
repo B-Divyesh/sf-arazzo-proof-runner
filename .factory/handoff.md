@@ -1,63 +1,53 @@
-# Arazzo Proof Runner — build handoff
+# Arazzo Proof Runner — adversarial review handoff
 
-## Independent verification — PASS
+Work order: `arazzo-proof-runner-review-1`
 
-Verifier work order: `arazzo-proof-runner-verify-1`
-Verified candidate: `7ad149493d6b3d8927ef38dd187275cdb71f2a1a`
+Reviewed: 2026-08-28
+
+Candidate: `5716673d97177d3fc0626d08136015a238fe2b96`
 Live URL: <https://arazzo-proof-runner.sociobot.in/>
 
-**PASS — no Critical, High, Medium, or Low defects found.** The clean-checkout gates (`npm ci`, `cargo test`, strict `cargo clippy`, `npm test`, exact `npm run build`, and `cargo package`) passed. A clean consumer installation from the packaged crate exercised passing, failing, unchanged-comparison, redaction, missing-input, remote-source, and omitted-environment paths with the documented exit codes. Fresh live browser checks passed on desktop and 390px mobile: keyboard/focus, reduced motion, axe serious/critical, no console errors, first-party-only requests, privacy storage, response policies, service worker update/offline reload, and budget checks. Live HTML, JS, CSS, hero image, and service worker exactly match the candidate production build by SHA-256/byte comparison.
+## Outcome
 
-Fresh Lighthouse mobile: Performance 95, Accessibility 100, Best Practices 100, SEO 100; FCP 1.0 s, LCP 2.0 s, TBT 240 ms, CLS 0. Full command-level evidence, hashes, limits, and defect table: [`.factory/verification.md`](verification.md).
+**FAIL.** The full report is [review-1.md](review-1.md).
 
-Work order: `arazzo-proof-runner-build-1`
+Blocking findings:
 
-Version: `0.1.0`
+1. The first screen does not name the intended API-owner audience.
+2. There is no one-click web demo or `arazzo-proof demo` sandbox.
+3. `.factory/claims.json` and `@claim:` tests are absent despite many public claims.
+4. `/demo` and unknown paths use the generic Azure Static Web Apps 404.
 
-Completed: 2026-08-27
+The review also records a serious mobile Axe issue, incomplete route metadata and shared structure, missing route-focus behavior, a non-runnable first-use command, two README sentences over 22 words, unclear terminology, and missing external-link disclosure.
 
-## What shipped
+## What was done
 
-- A single Rust binary, `arazzo-proof`, with non-interactive `run` and `compare` commands, useful `--help`, documented exit codes, and `--json` summaries.
-- A practical, explicitly documented Arazzo 1.0.x subset: local OpenAPI 3.0/3.1 sources, operation IDs and local operation paths, four parameter locations, JSON request bodies, workflow/environment/step-output substitutions, step outputs, and six success-criterion comparison operators.
-- Required environment files with base URL overrides, workflow inputs, extension values, headers, secrets, and JSON Pointer body redaction.
-- Stable `proof.json` plus self-contained `report.html` bundles. No timestamp, request duration, or volatile response headers enter the artifact.
-- Baseline/current comparison through `comparison.json` and one-file `comparison.html`; response and assertion changes are shown at their workflow step.
-- Defense-in-depth redaction for authorization, cookies, API keys, token/secret header names, configured secret values, assertion actual/expected values, URLs, bodies, outputs, and hand-authored input proof files during comparison.
-- Three representative in-process HTTP workflow fixtures plus a true binary-level CLI test.
-- A responsive Vite documentation site in `dist/site/` with a keyboard-operable proof-diff specimen, offline shell cache, dark treatment, privacy/terms pages, and no analytics, remote scripts, or third-party fonts.
-- Original `proof-strata.webp` hero generated with the required factory image deployment and compressed to 208 KB. Full provenance and prompt are in `.factory/design.md`.
+- Opened the live site cold in fresh Chromium contexts at 390 × 844 and 1440 × 900 and recorded the pre-scroll interpretation.
+- Audited every landing and README sentence with whitespace-delimited word counts, plus headings and actions.
+- Checked `/demo`, `?demo=1`, the specimen toggle, browser storage, banner/reset/start controls, `.factory/demo.md`, and `arazzo-proof demo` from a fresh temp directory.
+- Checked the missing claims manifest and inventoried every claim-like statement on the landing page, README, Privacy, and Terms routes with a concrete test recommendation.
+- Tested live metadata, titles, headings, landmarks, links, 404 behavior, route focus, touch targets, console errors, and Axe at mobile width.
+- Exercised first-party-only network behavior and offline reload after service-worker activation.
+- Crawled all advertised landing links and hash targets.
+- Ran the repository gate from a clean local clone.
+- Changed only `.factory/review-1.md` and this handoff; product code was not modified.
 
-## Run and verify
+## Verification evidence
 
-```sh
-npm ci
-npm test
-npm run build
-cargo clippy --all-targets --all-features -- -D warnings
-cargo package
-```
+- `npm ci`: pass, 0 vulnerabilities.
+- `npm test` from clean clone: pass — 5 Rust unit tests, 2 CLI tests, 3 workflow tests, 1 doctest, 4 site tests.
+- Vite build within that gate: pass — 2.08 kB JS, 10.85 kB CSS.
+- Live root, `/privacy/`, `/terms/`, and GitHub destination: HTTP 200.
+- Live `/demo` and an arbitrary unknown route: HTTP 404 with generic Azure page.
+- `arazzo-proof demo`: exit 2, unrecognized subcommand.
+- Live Axe at 390 px: one serious `scrollable-region-focusable` issue on `#install-command`; one moderate nested-complementary-landmark issue.
+- Live root: no console errors, one `h1`, one `main`, no page overflow at 390 px.
+- Offline reload after first visit: pass for `/` and `/privacy/`.
+- Network observation: same-origin requests only; no cookies or Web Storage/IndexedDB data observed. The service-worker cache was present.
+- Link crawl: no dead advertised links; external GitHub links returned 200.
 
-The static deployment command is `npm run build` and its root is `dist/site/` (`dist/site/index.html` is present). The CLI release artifact is ready for factory publishing with `cargo package`; no publish was attempted.
+## What remains
 
-Verified locally on 2026-08-27:
+Implement the six acceptance changes at the end of `review-1.md`, then rerun the review from fresh browser contexts and a clean clone. A subsequent reviewer should not accept the product until all blocking findings are gone and no more than three minor findings remain.
 
-- `npm test`: passed (5 Rust unit tests, 2 CLI tests, 3 live workflow tests, 1 doctest, and 4 browser/site tests).
-- `cargo clippy --all-targets --all-features -- -D warnings`: passed.
-- `cargo package`: passed; 42.2 KB compressed crate.
-- `npm audit --audit-level=high`: 0 vulnerabilities.
-- Factory `verify-url.sh`: HTTP 200, title and `lang` present, exactly one h1, main landmark present, 0 missing image alts, 0 unlabeled buttons, 0 console/page errors.
-- Playwright + axe: 0 serious or critical violations; keyboard proof toggle passes; 390×844 layout has no horizontal overflow.
-- Lighthouse 12.8.2 mobile/local: Performance 99, Accessibility 100, Best Practices 100, SEO 100; FCP 0.94 s, LCP 2.14 s, CLS 0, total blocking time 0 ms. Lab Lighthouse does not report field INP; 0 ms TBT is the interaction proxy.
-- Initial built assets: 2.08 KB JavaScript, 10.85 KB CSS, no font payload, 208 KB hero WebP.
-
-## Known limits
-
-- This intentionally remains an Arazzo subset. Remote source descriptions, callbacks/webhooks, OAuth acquisition, external reference resolution, JSONPath criteria, success/failure actions, retries, and non-JSON request bodies are not implemented. The README labels the boundary and the runner errors on unsupported execution constructs it encounters.
-- The runner executes steps in declared order and stops on configuration or transport errors. Assertion failures still complete the workflow and produce evidence, then return exit code 1.
-- OpenAPI schemas are used to locate operations and servers, not for request/response schema validation.
-- The generated crate is ready to publish, but factory registry credentials and release automation are intentionally untouched.
-
-## Suggested next steps
-
-Track Arazzo specification revisions, add external reference resolution only with strict local/remote trust controls, and publish signed binaries for the main desktop CI platforms through factory release automation.
+The earlier independent build verification remains in [verification.md](verification.md) as historical evidence. Its PASS predates this stricter first-read/demo/claims review and should not be treated as the current disposition.
