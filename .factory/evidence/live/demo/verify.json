@@ -1,6 +1,6 @@
 {
   "url": "https://arazzo-proof-runner.sociobot.in/?demo=1",
-  "loadMs": 602,
+  "loadMs": 1026,
   "errors": [],
   "a11y": {
     "title": "Demo — Arazzo Proof Runner",
@@ -9,6 +9,6 @@
     "main": true,
     "imgsMissingAlt": 0,
     "buttonsUnlabeled": 0,
-    "textLength": 2985
+    "textLength": 3041
   }
 }

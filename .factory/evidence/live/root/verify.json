@@ -1,14 +1,14 @@
 {
   "url": "https://arazzo-proof-runner.sociobot.in/",
-  "loadMs": 614,
+  "loadMs": 946,
   "errors": [],
   "a11y": {
-    "title": "Arazzo Proof Runner — run workflows and save proof",
+    "title": "Arazzo Proof Runner — save a workflow proof bundle",
     "lang": "en",
     "h1": 1,
     "main": true,
     "imgsMissingAlt": 0,
     "buttonsUnlabeled": 0,
-    "textLength": 2745
+    "textLength": 2756
   }
 }
