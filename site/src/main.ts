@@ -45,8 +45,16 @@ if (demoMode) {
   if (demoBanner) demoBanner.hidden = false;
   if (demoReplay) demoReplay.hidden = false;
   document.documentElement.dataset.mode = "demo";
-  document.title = "Demo — Arazzo Proof Runner";
+  const title = "Demo — Arazzo Proof Runner";
+  const description = "Try the bundled Arazzo checkout workflow and inspect its redacted proof bundle.";
+  document.title = title;
   document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute("href", "https://arazzo-proof-runner.sociobot.in/?demo=1");
+  document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute("content", description);
+  document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.setAttribute("content", title);
+  document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.setAttribute("content", description);
+  document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')?.setAttribute("content", title);
+  document.querySelector<HTMLMetaElement>('meta[name="twitter:description"]')?.setAttribute("content", description);
+  document.querySelector<HTMLAnchorElement>("[data-demo-link]")?.setAttribute("aria-current", "page");
 }
 
 document.querySelector<HTMLButtonElement>("[data-reset-demo]")?.addEventListener("click", () => {
@@ -81,6 +89,6 @@ window.addEventListener("pageshow", event => {
   }
 });
 
-if (location.pathname !== "/" && location.pathname !== "/index.html") {
+if (demoMode || (location.pathname !== "/" && location.pathname !== "/index.html")) {
   requestAnimationFrame(announceAndFocus);
 }

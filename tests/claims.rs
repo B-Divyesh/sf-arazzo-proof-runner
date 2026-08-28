@@ -8,31 +8,65 @@ use tempfile::tempdir;
 #[test]
 // @claim:bundled-demo
 fn claim_bundled_demo_is_isolated_and_writes_real_proof() {
-    let output = Command::new(env!("CARGO_BIN_EXE_arazzo-proof"))
-        .args(["demo", "--json"])
-        .output()
-        .unwrap();
-    assert!(
-        output.status.success(),
-        "{}",
-        String::from_utf8_lossy(&output.stderr)
+    let mut workspaces = Vec::new();
+    for _ in 0..2 {
+        let output = Command::new(env!("CARGO_BIN_EXE_arazzo-proof"))
+            .args(["demo", "--json"])
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let summary: Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(summary["workflowId"], "checkout");
+        assert_eq!(summary["steps"], 3);
+        assert_eq!(summary["passed"], 3);
+        let workspace = Path::new(summary["workspace"].as_str().unwrap());
+        assert_eq!(workspace.parent(), Some(std::env::temp_dir().as_path()));
+        assert!(
+            workspace
+                .file_name()
+                .unwrap()
+                .to_string_lossy()
+                .starts_with("arazzo-proof-demo-")
+        );
+        let proof_path = Path::new(summary["proof"].as_str().unwrap());
+        let report_path = Path::new(summary["report"].as_str().unwrap());
+        assert!(proof_path.starts_with(workspace) && report_path.starts_with(workspace));
+        let proof = fs::read_to_string(proof_path).unwrap();
+        let report = fs::read_to_string(report_path).unwrap();
+        assert!(proof.contains("createCart") && proof.contains("quoteCart"));
+        assert!(report.contains("createCart") && report.contains("quoteCart"));
+        assert!(!proof.contains("demo-only-secret"));
+        assert!(!report.contains("demo-only-secret"));
+        assert_html_is_self_contained(&report);
+        workspaces.push(workspace.to_path_buf());
+    }
+    assert_ne!(
+        workspaces[0], workspaces[1],
+        "demo workspaces must be unique"
     );
-    let summary: Value = serde_json::from_slice(&output.stdout).unwrap();
-    assert_eq!(summary["workflowId"], "checkout");
-    assert_eq!(summary["steps"], 3);
-    assert_eq!(summary["passed"], 3);
-    let workspace = summary["workspace"].as_str().unwrap();
-    assert!(workspace.starts_with(&std::env::temp_dir().to_string_lossy().to_string()));
-    let proof_path = summary["proof"].as_str().unwrap();
-    let report_path = summary["report"].as_str().unwrap();
-    let proof = fs::read_to_string(proof_path).unwrap();
-    let report = fs::read_to_string(report_path).unwrap();
-    assert!(proof.contains("createCart") && proof.contains("quoteCart"));
-    assert!(report.contains("createCart") && report.contains("quoteCart"));
-    assert!(!proof.contains("demo-only-secret"));
-    assert!(!report.contains("demo-only-secret"));
-    assert!(!report.contains("https://") && !report.contains("<script src="));
-    fs::remove_dir_all(workspace).unwrap();
+    for workspace in workspaces {
+        fs::remove_dir_all(workspace).unwrap();
+    }
+}
+
+fn assert_html_is_self_contained(html: &str) {
+    for attribute in ["src=\"", "href=\""] {
+        let mut remainder = html;
+        while let Some(start) = remainder.find(attribute) {
+            remainder = &remainder[start + attribute.len()..];
+            let end = remainder.find('"').expect("unterminated HTML attribute");
+            let value = &remainder[..end];
+            assert!(
+                value.is_empty() || value.starts_with('#') || value.starts_with("data:"),
+                "report contains a fetchable asset reference: {attribute}{value:?}"
+            );
+            remainder = &remainder[end + 1..];
+        }
+    }
 }
 
 #[test]

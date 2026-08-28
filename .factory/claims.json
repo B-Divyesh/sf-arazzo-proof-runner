@@ -1,7 +1,7 @@
 [
   {
     "id": "bundled-demo",
-    "claim": "The bundled demo runs a three-step checkout locally and writes a redacted JSON proof plus self-contained HTML report in a unique temporary workspace.",
+    "claim": "The bundled demo runs a three-step checkout locally and writes a proof bundle with redacted proof.json and self-contained report.html in a unique temporary workspace.",
     "where": "landing page, README, CLI help",
     "test": "cargo test --test claims claim_bundled_demo_is_isolated_and_writes_real_proof",
     "sandbox": "fresh process; loopback fixture created by the CLI; unique operating-system temporary directory; inspect both output files"
@@ -17,8 +17,8 @@
     "id": "operation-selection-and-parameters",
     "claim": "The documented subset supports YAML and JSON files, OpenAPI 3.0 and 3.1, both operation selectors, all four parameter locations, and six comparison operators.",
     "where": "landing supported-features ledger, README",
-    "test": "cargo test --test workflows operation_path_and_parameter_substitution_work",
-    "sandbox": "fresh temporary directory and in-process HTTP fixture; paired with the 3.1 chaining fixture in the same test binary"
+    "test": "cargo test --test workflows claim_operation_selection_and_parameters_full_matrix",
+    "sandbox": "one tagged test uses fresh fixtures for YAML and JSON Arazzo/OpenAPI/environment files, OpenAPI 3.0/3.1, both selectors, all parameter locations, and all six operators"
   },
   {
     "id": "comparison-report",
@@ -31,8 +31,8 @@
     "id": "exit-codes-and-json",
     "claim": "Run and compare return exit 0 for success, 1 for assertion or comparison changes, and 2 for invalid input; --json emits parseable output without prompting.",
     "where": "README exit codes and run examples",
-    "test": "cargo test --test cli run_command_writes_bundle_and_returns_assertion_exit_code",
-    "sandbox": "fresh temporary directory and one-request loopback fixture"
+    "test": "cargo test --test cli claim_exit_codes_and_json_cover_run_and_compare_matrix",
+    "sandbox": "fresh temporary directories and loopback fixtures; closed stdin and timeout for the run/compare 0/1/2 matrix; parse JSON for completed cases"
   },
   {
     "id": "cli-help",
@@ -57,10 +57,10 @@
   },
   {
     "id": "web-demo-isolation",
-    "claim": "One click opens the sample report in demo mode; reset restores it, and demo mode writes no cookies or browser storage.",
+    "claim": "One click opens an in-memory sample; reset restores it, existing browser data stays unchanged, and no demo state persists.",
     "where": "landing first screen and demo banner",
     "test": "npm run build:site && node --test --test-name-pattern='@claim:web-demo-isolation' site/tests/site.test.mjs",
-    "sandbox": "fresh 390px browser context with request, cookie, localStorage, sessionStorage, and IndexedDB inspection"
+    "sandbox": "390px browser context seeded with real localStorage, sessionStorage, and IndexedDB data before demo entry; mutate, reset, and inspect all state"
   },
   {
     "id": "offline-site",
@@ -74,7 +74,7 @@
     "claim": "The documentation site loads no analytics, remote scripts, accounts, cookies, or persistent application data.",
     "where": "landing facts and privacy page",
     "test": "npm run build:site && node --test --test-name-pattern='@claim:site-privacy' site/tests/site.test.mjs",
-    "sandbox": "fresh browser context across every public route with all requests and storage intercepted"
+    "sandbox": "fresh browser context across every public route with an exact deployed-file request allowlist and cookies, local/session storage, IndexedDB, and Cache Storage inspection"
   },
   {
     "id": "routing-and-metadata",

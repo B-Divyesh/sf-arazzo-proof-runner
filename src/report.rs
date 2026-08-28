@@ -42,7 +42,7 @@ pub(crate) fn render_proof(proof: &ProofBundle) -> String {
     document(
         &format!("{} · Arazzo proof", proof.workflow_id),
         &format!(
-            r#"<header><span class="eyebrow">Arazzo proof / {environment}</span><h1>{workflow}</h1><p>Reproducible evidence from <code>{source}</code>. Sensitive values were removed before this report was written.</p><ul class="summary"><li><span>Result</span><strong class="{status_class}">{status}</strong></li><li><span>Steps</span><strong>{step_count}</strong></li><li><span>Passed</span><strong>{passed}</strong></li><li><span>Failed</span><strong>{failed}</strong></li></ul></header><main id="main"><section class="workflow" aria-label="Workflow evidence">{steps}</section></main><footer>Generated locally by Arazzo Proof Runner · proof schema <code>{schema}</code></footer>"#,
+            r#"<header><span class="eyebrow">Arazzo proof / {environment}</span><h1>{workflow}</h1><p>Evidence captured from <code>{source}</code>. Sensitive values were removed before this report was written.</p><ul class="summary"><li><span>Result</span><strong class="{status_class}">{status}</strong></li><li><span>Steps</span><strong>{step_count}</strong></li><li><span>Passed</span><strong>{passed}</strong></li><li><span>Failed</span><strong>{failed}</strong></li></ul></header><main id="main"><section class="workflow" aria-label="Workflow evidence">{steps}</section></main><footer>Generated locally by Arazzo Proof Runner · proof schema <code>{schema}</code></footer>"#,
             environment = escape(&proof.environment),
             workflow = escape(&proof.workflow_id),
             source = escape(&proof.source_file),
@@ -74,7 +74,7 @@ pub(crate) fn render_comparison(comparison: &Comparison) -> String {
     document(
         "Arazzo proof comparison",
         &format!(
-            r#"<header><span class="eyebrow">Proof comparison</span><h1>{baseline} → {current}</h1><p>Review-visible differences between two already-redacted local proof artifacts.</p><ul class="summary"><li><span>Result</span><strong class="{class}">{status}</strong></li><li><span>Added</span><strong>{added}</strong></li><li><span>Removed</span><strong>{removed}</strong></li><li><span>Modified</span><strong>{modified}</strong></li></ul></header><main id="main"><section class="workflow" aria-label="Evidence changes">{changes}</section></main><footer>Generated locally by Arazzo Proof Runner · comparison schema <code>{schema}</code></footer>"#,
+            r#"<header><span class="eyebrow">Proof comparison</span><h1>{baseline} → {current}</h1><p>Differences between two redacted <code>proof.json</code> files.</p><ul class="summary"><li><span>Result</span><strong class="{class}">{status}</strong></li><li><span>Added</span><strong>{added}</strong></li><li><span>Removed</span><strong>{removed}</strong></li><li><span>Modified</span><strong>{modified}</strong></li></ul></header><main id="main"><section class="workflow" aria-label="Evidence changes">{changes}</section></main><footer>Generated locally by Arazzo Proof Runner · comparison schema <code>{schema}</code></footer>"#,
             baseline = escape(&comparison.baseline_workflow),
             current = escape(&comparison.current_workflow),
             added = comparison.summary.added,

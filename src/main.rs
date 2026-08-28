@@ -13,7 +13,7 @@ use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 #[derive(Parser)]
-#[command(name = "arazzo-proof", version, about = "Run an Arazzo workflow and keep the proof", long_about = None)]
+#[command(name = "arazzo-proof", version, about = "Run an Arazzo workflow and save a proof bundle", long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -170,7 +170,7 @@ fn run_demo(machine: bool) -> Result<u8> {
     let nonce = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
-        .as_millis();
+        .as_nanos();
     let workspace =
         std::env::temp_dir().join(format!("arazzo-proof-demo-{}-{nonce}", std::process::id()));
     fs::create_dir_all(&workspace)

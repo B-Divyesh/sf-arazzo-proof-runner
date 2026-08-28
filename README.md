@@ -1,6 +1,6 @@
 # Arazzo Proof Runner
 
-`arazzo-proof` runs the documented Arazzo 1.0.x features on your machine. Choose an environment and run a multi-step workflow. The CLI writes redacted JSON and HTML reports for CI or review.
+`arazzo-proof` runs the documented Arazzo 1.0.x features on your machine. Choose an environment and run a multi-step workflow. The CLI writes a redacted proof bundle with JSON and HTML reports.
 
 It is for API owners who need step-by-step evidence while adopting Arazzo. The CLI has no account, telemetry, upload, or hosted service.
 
@@ -23,7 +23,7 @@ cargo install --path .
 arazzo-proof --help
 ```
 
-The current package version is `0.1.0`. Run `cargo package` to validate the release package. Factory automation owns registry publishing.
+The current package version is `0.1.0`. Run `cargo package` to validate the release package.
 
 ## Run and compare workflows
 

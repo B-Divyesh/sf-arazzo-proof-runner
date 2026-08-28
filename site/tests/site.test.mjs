@@ -86,6 +86,21 @@ test("@claim:web-demo-isolation one click opens resettable sample without persis
   const requests = [];
   page.on("request", request => requests.push(new URL(request.url()).origin));
   await page.goto(origin);
+  await page.evaluate(async () => {
+    localStorage.setItem("real:project", "keep-local");
+    sessionStorage.setItem("real:session", "keep-session");
+    await new Promise((resolve, reject) => {
+      const open = indexedDB.open("real-project", 1);
+      open.onupgradeneeded = () => open.result.createObjectStore("records");
+      open.onerror = () => reject(open.error);
+      open.onsuccess = () => {
+        const transaction = open.result.transaction("records", "readwrite");
+        transaction.objectStore("records").put("keep-indexeddb", "sample");
+        transaction.oncomplete = () => { open.result.close(); resolve(); };
+        transaction.onerror = () => reject(transaction.error);
+      };
+    });
+  });
   await page.getByRole("link", { name: "Try it with sample data" }).first().click();
   await page.waitForLoadState("networkidle");
   assert.equal(new URL(page.url()).search, "?demo=1");
@@ -96,13 +111,32 @@ test("@claim:web-demo-isolation one click opens resettable sample without persis
   assert.match(await page.locator(".demo-status").textContent(), /expected USD, received EUR/);
   await page.getByRole("button", { name: "Reset demo" }).click();
   assert.equal(await page.getByRole("button", { name: "Inject changed response" }).getAttribute("aria-pressed"), "false");
-  const clientState = await page.evaluate(async () => ({
-    local: localStorage.length,
-    session: sessionStorage.length,
-    databases: indexedDB.databases ? (await indexedDB.databases()).length : 0,
-    cookies: document.cookie
-  }));
-  assert.deepEqual(clientState, { local: 0, session: 0, databases: 0, cookies: "" });
+  const clientState = await page.evaluate(async () => {
+    const indexedValue = await new Promise((resolve, reject) => {
+      const open = indexedDB.open("real-project", 1);
+      open.onerror = () => reject(open.error);
+      open.onsuccess = () => {
+        const transaction = open.result.transaction("records", "readonly");
+        const get = transaction.objectStore("records").get("sample");
+        get.onsuccess = () => { open.result.close(); resolve(get.result); };
+        get.onerror = () => reject(get.error);
+      };
+    });
+    return {
+      local: Object.fromEntries(Object.entries(localStorage)),
+      session: Object.fromEntries(Object.entries(sessionStorage)),
+      databases: indexedDB.databases ? (await indexedDB.databases()).map(database => database.name) : ["real-project"],
+      indexedValue,
+      cookies: document.cookie
+    };
+  });
+  assert.deepEqual(clientState, {
+    local: { "real:project": "keep-local" },
+    session: { "real:session": "keep-session" },
+    databases: ["real-project"],
+    indexedValue: "keep-indexeddb",
+    cookies: ""
+  });
   assert.ok(requests.every(requestOrigin => requestOrigin === origin));
   await context.close();
 });
@@ -116,7 +150,7 @@ test("@claim:offline-site cached public routes reload offline", async () => {
   await context.setOffline(true);
   await page.reload({ waitUntil: "domcontentloaded" });
   assert.equal(await page.title(), "Demo — Arazzo Proof Runner");
-  assert.equal(await page.locator("h1").textContent(), "Run Arazzo workflows and save proof");
+  assert.equal(await page.locator("h1").textContent(), "Run Arazzo workflows and save a proof bundle");
   await page.goto(`${origin}/privacy/`, { waitUntil: "domcontentloaded" });
   assert.equal(await page.locator("h1").textContent(), "Privacy");
   await context.close();
@@ -128,9 +162,35 @@ test("@claim:site-privacy every page uses only same-origin assets and no trackin
   const requests = [];
   page.on("request", request => requests.push(request.url()));
   for (const path of ["/", "/?demo=1", "/privacy/", "/terms/"]) await page.goto(origin + path, { waitUntil: "networkidle" });
-  assert.ok(requests.every(url => new URL(url).origin === origin));
+  const deployedFiles = new Set();
+  const collectFiles = async (directory, prefix = "") => {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const relative = `${prefix}/${entry.name}`;
+      if (entry.isDirectory()) await collectFiles(join(directory, entry.name), relative);
+      else deployedFiles.add(relative);
+    }
+  };
+  await collectFiles(root);
+  const allowedPaths = new Set([...deployedFiles, "/", "/privacy/", "/terms/"]);
+  for (const requestUrl of requests) {
+    const url = new URL(requestUrl);
+    assert.equal(url.origin, origin, `unexpected remote request: ${requestUrl}`);
+    assert.ok(allowedPaths.has(url.pathname), `unexpected same-origin request: ${url.pathname}`);
+  }
   assert.equal((await context.cookies()).length, 0);
   assert.deepEqual(await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length })), { local: 0, session: 0 });
+  assert.deepEqual(await page.evaluate(async () => indexedDB.databases ? (await indexedDB.databases()).map(database => database.name) : []), []);
+  const cacheState = await page.evaluate(async () => {
+    const names = await caches.keys();
+    const entries = [];
+    for (const name of names) {
+      const cache = await caches.open(name);
+      entries.push(...(await cache.keys()).map(request => new URL(request.url).pathname));
+    }
+    return { names, entries };
+  });
+  assert.ok(cacheState.names.every(name => name === "arazzo-proof-shell-v2"));
+  assert.ok(cacheState.entries.every(path => allowedPaths.has(path)), `unexpected cache entry: ${cacheState.entries}`);
   assert.equal(await page.locator('script[src^="http"]').count(), 0);
   await context.close();
 });
@@ -138,26 +198,37 @@ test("@claim:site-privacy every page uses only same-origin assets and no trackin
 test("@claim:routing-and-metadata routes have titles, metadata, focus, skeleton, and designed 404", async () => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
-  for (const [path, title, heading] of [["/", "Arazzo Proof Runner — run workflows and save proof", "Run Arazzo workflows and save proof"], ["/privacy/", "Privacy — Arazzo Proof Runner", "Privacy"], ["/terms/", "Terms — Arazzo Proof Runner", "Terms"]]) {
+  const expectedHeader = ["Demo", "How it works", "Privacy", "Source on GitHub (external)"];
+  const expectedHeaderHrefs = ["/?demo=1#sample-report", "/#how", "/privacy/", "https://github.com/B-Divyesh/sf-arazzo-proof-runner"];
+  const expectedFooter = ["Privacy", "Terms", "GitHub (external)"];
+  const expectedFooterHrefs = ["/privacy/", "/terms/", "https://github.com/B-Divyesh/sf-arazzo-proof-runner"];
+  const routes = [
+    ["/", 200, "Arazzo Proof Runner — save a workflow proof bundle", "Run Arazzo workflows and save a proof bundle", "https://arazzo-proof-runner.sociobot.in/", false],
+    ["/demo", 200, "Demo — Arazzo Proof Runner", "Run Arazzo workflows and save a proof bundle", "https://arazzo-proof-runner.sociobot.in/?demo=1", true],
+    ["/privacy/", 200, "Privacy — Arazzo Proof Runner", "Privacy", "https://arazzo-proof-runner.sociobot.in/privacy/", true],
+    ["/terms/", 200, "Terms — Arazzo Proof Runner", "Terms", "https://arazzo-proof-runner.sociobot.in/terms/", true],
+    ["/not-a-real-route", 404, "Page not found — Arazzo Proof Runner", "This path has no step", "https://arazzo-proof-runner.sociobot.in/404.html", true]
+  ];
+  for (const [path, status, title, heading, canonical, shouldFocus] of routes) {
     const response = await page.goto(origin + path, { waitUntil: "networkidle" });
-    assert.equal(response.status(), 200);
+    assert.equal(response.status(), status);
     assert.equal(await page.title(), title);
     assert.equal(await page.locator("h1").textContent(), heading);
-    assert.equal(await page.locator('meta[name="description"]').count(), 1);
-    assert.equal(await page.locator('link[rel="canonical"]').count(), 1);
-    assert.equal(await page.locator('meta[property="og:image"]').count(), 1);
-    assert.equal(await page.locator('link[rel="apple-touch-icon"]').count(), 1);
+    assert.equal(await page.locator('meta[name="description"]').getAttribute("content").then(value => Boolean(value)), true);
+    assert.equal(await page.locator('link[rel="canonical"]').getAttribute("href"), canonical);
+    for (const selector of ['meta[property="og:title"]', 'meta[property="og:description"]', 'meta[property="og:image"]', 'meta[name="twitter:card"]', 'meta[name="twitter:title"]', 'meta[name="twitter:description"]', 'meta[name="twitter:image"]', 'link[rel="icon"]', 'link[rel="apple-touch-icon"]']) {
+      assert.equal(await page.locator(selector).count(), 1, `${path}: ${selector}`);
+    }
+    assert.deepEqual(await page.locator("header nav a").allTextContents().then(values => values.map(value => value.trim().replace(/\s+/g, " "))), expectedHeader);
+    assert.deepEqual(await page.locator("header nav a").evaluateAll(links => links.map(link => link.getAttribute("href"))), expectedHeaderHrefs);
+    assert.deepEqual(await page.locator("footer nav a").allTextContents().then(values => values.map(value => value.trim().replace(/\s+/g, " "))), expectedFooter);
+    assert.deepEqual(await page.locator("footer nav a").evaluateAll(links => links.map(link => link.getAttribute("href"))), expectedFooterHrefs);
+    assert.equal(await page.locator('a.skip-link[href="#main"]').count(), 1);
     assert.equal(await page.locator("header nav").count(), 1);
     assert.equal(await page.locator("footer").count(), 1);
-    if (path !== "/") assert.equal(await page.evaluate(() => document.activeElement?.tagName), "H1");
+    if (shouldFocus) assert.equal(await page.evaluate(() => document.activeElement?.tagName), "H1");
+    if (status === 404) assert.equal(await page.getByRole("link", { name: "Return home" }).count(), 1);
   }
-  const demoResponse = await page.goto(`${origin}/demo`, { waitUntil: "networkidle" });
-  assert.equal(demoResponse.status(), 200);
-  assert.equal(await page.title(), "Demo — Arazzo Proof Runner");
-  const missing = await page.goto(`${origin}/not-a-real-route`, { waitUntil: "networkidle" });
-  assert.equal(missing.status(), 404);
-  assert.equal(await page.locator("h1").textContent(), "This path has no step");
-  assert.equal(await page.getByRole("link", { name: "Return home" }).count(), 1);
   await context.close();
 });
 
@@ -168,7 +239,7 @@ test("hash and browser history navigation restore heading focus", async () => {
   await page.getByRole("link", { name: "How it works" }).first().click();
   await page.waitForFunction(() => document.activeElement?.id === "how-title");
   assert.equal(await page.evaluate(() => document.activeElement?.id), "how-title");
-  await page.getByRole("link", { name: "Privacy" }).click();
+  await page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Privacy" }).click();
   await page.waitForFunction(() => document.activeElement?.tagName === "H1");
   assert.equal(await page.evaluate(() => document.activeElement?.tagName), "H1");
   await page.goBack();

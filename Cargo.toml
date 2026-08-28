@@ -2,7 +2,7 @@
 name = "arazzo-proof-runner"
 version = "0.1.0"
 edition = "2024"
-description = "Local Arazzo subset runner that emits redacted proof reports"
+description = "Local Arazzo subset runner that writes redacted proof bundles"
 license = "MIT"
 repository = "https://github.com/B-Divyesh/sf-arazzo-proof-runner"
 homepage = "https://arazzo-proof-runner.sociobot.in"

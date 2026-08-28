@@ -13,6 +13,22 @@ fn write(path: &Path, content: &str) {
     fs::write(path, content).unwrap();
 }
 
+fn assert_html_is_self_contained(html: &str) {
+    for attribute in ["src=\"", "href=\""] {
+        let mut remainder = html;
+        while let Some(start) = remainder.find(attribute) {
+            remainder = &remainder[start + attribute.len()..];
+            let end = remainder.find('"').expect("unterminated HTML attribute");
+            let value = &remainder[..end];
+            assert!(
+                value.is_empty() || value.starts_with('#') || value.starts_with("data:"),
+                "report contains a fetchable asset reference: {attribute}{value:?}"
+            );
+            remainder = &remainder[end + 1..];
+        }
+    }
+}
+
 fn serve(responses: Vec<(&'static str, &'static str)>) -> String {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let address = listener.local_addr().unwrap();
@@ -173,12 +189,20 @@ workflows:
     assert!(serialized.contains("[REDACTED]"));
     let output = temp.path().join("proof");
     write_proof(&proof, &output).unwrap();
-    assert!(output.join("report.html").is_file());
+    let proof_json = fs::read_to_string(output.join("proof.json")).unwrap();
+    let report_html = fs::read_to_string(output.join("report.html")).unwrap();
+    for secret in ["token123", "ada@example.test", "Bearer token123"] {
+        assert!(!proof_json.contains(secret), "proof.json leaked {secret}");
+        assert!(!report_html.contains(secret), "report.html leaked {secret}");
+    }
+    assert!(proof_json.contains("[REDACTED]") && report_html.contains("[REDACTED]"));
+    assert_html_is_self_contained(&report_html);
 }
 
 #[test]
 // @claim:operation-selection-and-parameters
-fn operation_path_and_parameter_substitution_work() {
+fn claim_operation_selection_and_parameters_full_matrix() {
+    // JSON OpenAPI 3.0 and environment files, selected by operationPath from YAML Arazzo.
     let server = serve(vec![("GET /health?verbose=true ", r#"{"healthy":true}"#)]);
     let temp = tempdir().unwrap();
     let openapi: serde_json::Value = serde_yaml::from_str(
@@ -229,6 +253,54 @@ workflows:
     assert_eq!(proof.steps[0].assertions.len(), 7);
     assert_eq!(proof.steps[0].request.headers["X-Tenant"], "sandbox");
     assert_eq!(proof.steps[0].request.headers["Cookie"], "[REDACTED]");
+
+    // YAML OpenAPI 3.1 and environment files, selected by operationId from JSON Arazzo.
+    let server = serve(vec![(
+        "GET /pets/pet-7?tenant=sandbox ",
+        r#"{"id":"pet-7","state":"ready"}"#,
+    )]);
+    let temp = tempdir().unwrap();
+    write(&temp.path().join("openapi.yaml"), &common_openapi(&server));
+    write(&temp.path().join("env.yaml"), &env_file(&server));
+    let arazzo = serde_json::json!({
+        "arazzo": "1.0.1",
+        "info": {"title": "Pet path", "version": "1.0.0"},
+        "sourceDescriptions": [{"name": "api", "url": "./openapi.yaml", "type": "openapi"}],
+        "workflows": [{
+            "workflowId": "pathReview",
+            "steps": [{
+                "stepId": "fetch",
+                "operationId": "getPet",
+                "parameters": [
+                    {"name": "petId", "in": "path", "value": "pet-7"},
+                    {"name": "tenant", "in": "query", "value": "$env.tenant"}
+                ],
+                "successCriteria": [
+                    {"condition": "$statusCode == 200"},
+                    {"condition": "$response.body#/state == \"ready\""}
+                ]
+            }]
+        }]
+    });
+    write(
+        &temp.path().join("flow.json"),
+        &serde_json::to_string_pretty(&arazzo).unwrap(),
+    );
+    let proof = run_workflow(&RunOptions {
+        arazzo_path: temp.path().join("flow.json"),
+        environment_path: temp.path().join("env.yaml"),
+        workflow_id: None,
+    })
+    .unwrap();
+    assert_eq!(proof.arazzo_version, "1.0.1");
+    assert_eq!(proof.source_file, "flow.json");
+    assert_eq!(proof.result, RunStatus::Passed);
+    assert!(
+        proof.steps[0]
+            .request
+            .url
+            .contains("/pets/pet-7?tenant=sandbox")
+    );
 }
 
 #[test]
@@ -282,11 +354,15 @@ workflows:
         comparison
             .changes
             .iter()
-            .any(|change| change.field == "assertions")
+            .any(|change| change.step_id == "version" && change.field == "assertions")
     );
     let output = temp.path().join("comparison");
     write_comparison(&comparison, &output).unwrap();
+    let json = fs::read_to_string(output.join("comparison.json")).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+    assert_eq!(parsed["changes"][0]["stepId"], "version");
     let html = fs::read_to_string(output.join("comparison.html")).unwrap();
-    assert!(html.contains("assertions"));
+    assert!(html.contains("version") && html.contains("assertions"));
     assert!(html.contains("false"));
+    assert_html_is_self_contained(&html);
 }
