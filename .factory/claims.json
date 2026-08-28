@@ -78,7 +78,7 @@
   },
   {
     "id": "routing-and-metadata",
-    "claim": "Home, demo, privacy, terms, and unknown routes have product-authored titles, metadata, navigation, focus behavior, and 404 treatment.",
+    "claim": "Home, demo, privacy, terms, and unknown routes have product-authored titles, metadata, navigation, factory attribution, focus behavior, and 404 treatment.",
     "where": "site routes",
     "test": "npm run build:site && node --test --test-name-pattern='@claim:routing-and-metadata' site/tests/site.test.mjs",
     "sandbox": "fresh 390px browser context loading each route directly"

@@ -223,6 +223,8 @@ test("@claim:routing-and-metadata routes have titles, metadata, focus, skeleton,
     assert.deepEqual(await page.locator("header nav a").evaluateAll(links => links.map(link => link.getAttribute("href"))), expectedHeaderHrefs);
     assert.deepEqual(await page.locator("footer nav a").allTextContents().then(values => values.map(value => value.trim().replace(/\s+/g, " "))), expectedFooter);
     assert.deepEqual(await page.locator("footer nav a").evaluateAll(links => links.map(link => link.getAttribute("href"))), expectedFooterHrefs);
+    assert.equal(await page.locator("footer .factory-credit").textContent(), "Built by Param Factory");
+    assert.equal(await page.locator("footer .build-id").textContent(), "v0.1.0 · polish-3");
     assert.equal(await page.locator('a.skip-link[href="#main"]').count(), 1);
     assert.equal(await page.locator("header nav").count(), 1);
     assert.equal(await page.locator("footer").count(), 1);

@@ -29,3 +29,11 @@ test("catalog description is verb-first and no longer than 120 characters", asyn
   assert.ok(description.length <= 120, `${description.length} characters`);
   assert.match(description, /^Run\b/);
 });
+
+test("public copy contains no unregistered price claim", async () => {
+  const files = ["site/index.html", "site/privacy/index.html", "site/terms/index.html", "site/404.html", "README.md"];
+  for (const path of files) {
+    const copy = await readFile(path, "utf8");
+    assert.doesNotMatch(copy, /\bfree\b/i, `${path} contains a price claim`);
+  }
+});

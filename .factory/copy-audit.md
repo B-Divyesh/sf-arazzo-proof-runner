@@ -1,6 +1,6 @@
 # Copy audit
 
-Audited 28 August 2026 after the round-two rewrite. Counts are whitespace-delimited. No sentence exceeds 22 words, and no banned plain-words term remains.
+Audited 28 August 2026 after the round-three rewrite. Counts are whitespace-delimited. No sentence exceeds 22 words, and no banned plain-words term remains.
 
 ## Landing-page sentences
 
@@ -14,7 +14,7 @@ Audited 28 August 2026 after the round-two rewrite. Counts are whitespace-delimi
 | 9 | “Runs a bundled checkout workflow and opens its report.” |
 | 2 | “Runs locally.” |
 | 4 | “No account or telemetry.” |
-| 4 | “Free and MIT licensed.” |
+| 2 | “MIT licensed.” |
 | 8 | “A report links each input, request, and assertion.” |
 | 4 | “Install from the repository.” |
 | 11 | “Then run the bundled demo without an account or API setup.” |

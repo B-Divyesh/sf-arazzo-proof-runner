@@ -116,6 +116,7 @@ dd { margin: 4px 0 0; font-size: .84rem; overflow-wrap: anywhere; }
 .site-footer { display: grid; grid-template-columns: 1fr 1fr auto; gap: 24px; align-items: center; padding-block: 32px 56px; border-top: 2px solid var(--text); color: var(--muted); font-size: .85rem; }
 .site-footer > div { display: flex; align-items: center; gap: 10px; color: var(--text); }.brand-mark.small { transform: scale(.72); transform-origin: left center; margin-right: -8px; }
 .site-footer p { margin: 0; }
+.factory-credit { display: block; margin-top: 4px; color: var(--text); font-weight: 700; }
 .build-id { display: block; margin-top: 4px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .72rem; }
 .document { min-height: calc(100vh - 250px); max-width: 780px !important; padding-block: 88px 112px; }
 .document h1, .not-found h1 { max-width: 13ch; font-size: clamp(3.2rem, 7vw, 6rem); }.document p { max-width: 68ch; }.document a { min-height: 44px; display: inline-flex; align-items: center; color: var(--moss); font-weight: 700; }

@@ -1,1 +1,1 @@
-Run Arazzo workflows locally and save a redacted proof bundle for API reviews.
+Run Arazzo workflows and create a redacted proof bundle for API reviews.
