@@ -1,61 +1,37 @@
-# Arazzo Proof Runner — polish 3 handoff
+# Arazzo Proof Runner — review 4 handoff
 
 ## Outcome
 
-Perfection-loop round 3 is complete. The released candidate now has no unresolved finding from reviews 1–3. The static site retains the concrete-and-moss visual system and the Rust single-binary CLI remains unchanged.
+Independent adversarial review 4 is complete and **PASS**. No product-code changes were made. This commit adds the review record and replaces the previous polish handoff with the review handoff.
 
-Implementation commit: `6b158da6e16f46ce591aaddbe9d01db75107b406`
+Candidate: `15f018621d8f77a09ab15e74318a259c6640ee4b`
+Live site checked: <https://arazzo-proof-runner.sociobot.in/>
 
-Deployment ID: `1a893757-69ae-4b9d-8ebb-07238106575b`
+## What was verified
 
-Live site: <https://arazzo-proof-runner.sociobot.in/>
+- Fresh mobile (390 px) and desktop live visits identified the job, audience, and first action before scrolling.
+- The one-click web demo displayed realistic checkout proof output, showed the persistent sandbox banner, reset correctly, preserved seeded real browser storage, and reloaded offline after first visit.
+- Live network capture showed only same-origin product assets; no analytics, remote scripts, account, cookie, or persistent app state was observed.
+- The CLI demo was run from a separate temporary directory. It created a unique temporary workspace, emitted `proof.json` and self-contained `report.html`, and redacted Authorization data.
+- All 12 registered claim commands passed independently in a fresh clone. `cargo fmt --check`, strict Clippy, `cargo package`, and the production static build passed.
+- Live Home, Demo, Privacy, Terms, and designed 404 routes passed title/metadata/skeleton/focus/history/link checks. The live HTML SHA-256 values match the fresh production build.
+- The complete landing and README copy inventory, including word counts and terminology/action review, is in `.factory/review-4.md`.
+- Every finding from reviews 1–3 was rechecked against current source and live behavior. No regression remains.
 
-Demo: <https://arazzo-proof-runner.sociobot.in/?demo=1>
-
-## Changes
-
-- Removed the unregistered “Free” price claim from the first screen and Terms while retaining tested MIT-license wording.
-- Added a visible “Built by Param Factory” item and `v0.1.0 · polish-3` marker to every footer, including Demo and the designed 404.
-- Extended the routing claim test across Home, Demo, Privacy, Terms, and 404 to assert factory attribution and build identity.
-- Added a regression test that rejects price claims in all public site templates and README.
-- Updated the verb-first catalog description and round-three copy audit.
-- Recorded the complete cumulative finding map in `.factory/polish-3.md`.
-
-## Clean-clone verification
-
-Fresh clone: `/tmp/arazzo-polish3-clean-YT5XXC/repo` at `6b158da6e16f46ce591aaddbe9d01db75107b406`.
-
-- All 12 commands in `.factory/claims.json` passed independently.
-- `npm test` passed: 5 Rust unit tests, 3 Rust claim tests, 2 CLI tests, 3 workflow tests, 1 doctest, and 12 site/copy/browser tests.
-- Browser gates include 20 route/viewport/theme Axe combinations, demo isolation/reset, exact-request privacy, offline reload, metadata/routing/focus, 44 px targets, 200% text, reduced motion, and asset budgets.
-- `cargo fmt --all -- --check` passed.
-- `cargo clippy --all-targets --all-features -- -D warnings` passed.
-- `cargo package` passed: 181.3 KiB package, 47.0 KiB compressed.
-- `npm run build:site` produced `dist/site/`: 3,959 B JS, 14,076 B CSS, and 212,236 B hero WebP.
-
-## Deployed verification
-
-- `/opt/fleet/lib/verify-url.sh` passed cold on Home, Demo, Privacy, and Terms: correct title, `lang=en`, one `h1`, `<main>`, alt/labels, and no console errors.
-- Fresh live contexts passed 20/20 Axe checks across five route states, 390/1440 px, and light/dark modes.
-- Home, Demo, Privacy, Terms, and unknown routes showed “Built by Param Factory,” `polish-3`, correct route metadata, and no “Free” wording. Unknown routes returned the product 404 with status 404.
-- The one-click Demo showed the persistent banner, realistic three-step checkout, mutation/reset, and preserved seeded localStorage, sessionStorage, and IndexedDB data.
-- Exact-request allowlisting, zero cookies/application storage, shell-only Cache Storage, offline Demo/Privacy reload, focus/history restoration, and all 14 public links passed.
-- Live Home, Privacy, Terms, 404, service worker, CSS, and JS bytes matched the local production build exactly.
-- Security headers passed: CSP, HSTS, Referrer-Policy, and X-Content-Type-Options. Hashed assets use immutable caching.
-- Lighthouse mobile: Performance 99, Accessibility 100, Best Practices 100, SEO 100; FCP 0.8 s, LCP 2.0 s, TBT 70 ms, CLS 0.
-
-Evidence is under `.factory/evidence/polish-3/`; the complete per-finding map is `.factory/polish-3.md`.
-
-## Run and verify
+## How to verify
 
 ```sh
 npm ci
 npm test
-cargo run -- demo
+npm run build
+cargo fmt --all -- --check
 cargo clippy --all-targets --all-features -- -D warnings
 cargo package
+cargo run -- demo
 ```
+
+For the complete independent evidence and the exact manifest commands, see `.factory/review-4.md` and `.factory/claims.json`.
 
 ## Known gaps and next steps
 
-None.
+None for this candidate. Future changes should preserve the claim-to-test mapping and rerun the fresh-browser and temporary-directory demo exercises.
