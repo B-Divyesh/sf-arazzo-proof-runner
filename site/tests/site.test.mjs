@@ -66,7 +66,8 @@ test("reduced motion removes transitions and every mobile control has a 44px tar
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
   const page = await context.newPage();
   await page.goto(`${origin}/?demo=1`, { waitUntil: "networkidle" });
-  assert.equal(await page.locator(".button.primary").first().evaluate(element => getComputedStyle(element).transitionDuration), "0.01ms");
+  const reducedDuration = await page.locator(".button.primary").first().evaluate(element => parseFloat(getComputedStyle(element).transitionDuration));
+  assert.ok(reducedDuration <= 0.001, `transition duration is ${reducedDuration}s`);
   const tooSmall = await page.locator("a, button, [tabindex='0']").evaluateAll(elements => elements.filter(element => {
     const box = element.getBoundingClientRect();
     return box.width > 0 && box.height > 0 && (box.width < 44 || box.height < 44);
