@@ -44,7 +44,8 @@ after(async () => {
 
 test("all routes pass desktop and mobile Axe with no console errors", async () => {
   for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
-    for (const [path, colorScheme] of [["/", "light"], ["/?demo=1", "dark"], ["/privacy/", "light"], ["/terms/", "dark"], ["/missing-route", "light"]]) {
+    for (const path of ["/", "/?demo=1", "/privacy/", "/terms/", "/missing-route"]) {
+      for (const colorScheme of ["light", "dark"]) {
       const context = await browser.newContext({ viewport, colorScheme });
       const page = await context.newPage();
       const errors = [];
@@ -58,6 +59,7 @@ test("all routes pass desktop and mobile Axe with no console errors", async () =
       if (path !== "/missing-route") assert.deepEqual(errors, [], path);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), false, path);
       await context.close();
+      }
     }
   }
 });
