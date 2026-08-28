@@ -1,90 +1,32 @@
-# Arazzo Proof Runner — polish round 1 handoff
+# Arazzo Proof Runner — review round 2 handoff
 
 ## Outcome
 
-All findings in `.factory/review-1.md` are resolved. No earlier review or polish report existed. The repaired static site and CLI were pushed to `main` and deployed to <https://arazzo-proof-runner.sociobot.in/>.
+Adversarial review 2 is complete. Verdict: **FAIL**.
 
-Implementation commits:
+The live product passed cold first-read, one-click demo, seeded real-data isolation, offline, accessibility, routing, dead-link, CLI demo, build, and visual-identity checks. The release remains blocked because several broad entries in `.factory/claims.json` are only partly asserted by their named tests. Four smaller findings cover route-navigation consistency, the 404 canonical policy, output terminology, and one unlisted README process claim.
 
-- `efe104a` — isolated CLI/web demo, claims, routing, copy, metadata, policies, tests, and evidence
-- `d6981a2` — dark-mode contrast and mobile interaction gates
-- `f843470` — finding-by-finding polish record and final claim coverage
-- `02f50a3` — 404 dark-mode contrast found during the live cold check
+No product code was changed. The review is in `.factory/review-2.md`.
 
-## Product changes
+## Verification performed
 
-- Added `arazzo-proof demo`. It starts a loopback fixture, runs the real bundled three-step checkout, and writes a proof bundle under a unique system temporary directory.
-- Added one-click `?demo=1` with a persistent “sample data, nothing is saved” banner, reset, and “Start for real.” Web state is memory-only.
-- Rewrote the first screen to identify API owners, the job, the report contents, and the first action.
-- Added `.factory/claims.json` with 12 independently runnable claim commands and unique `@claim:` tags.
-- Added a shared route skeleton, route focus announcements, back/hash focus restoration, complete metadata, original-art social/touch images, `/demo`, and a styled 404 with a real 404 status.
-- Added the three-step usage path, privacy limits, runnable install/demo commands, and all review-requested copy changes.
-- Added validation for external references, callbacks, webhooks, OAuth flows, and retry policies before requests run.
-- Preserved the concrete-and-moss visual thesis and recorded derivative asset provenance in `.factory/design.md`.
+- Opened the live root cold at 390 × 844 and 1440 × 900.
+- Exercised Demo, changed response, Reset demo, and Start for real.
+- Confirmed no demo cookies or new browser storage; confirmed seeded real localStorage, sessionStorage, and IndexedDB remained untouched.
+- Intercepted live requests and confirmed only the product origin was contacted.
+- Reloaded Demo and Privacy offline after service-worker activation.
+- Ran all 12 `.factory/claims.json` commands independently from `/tmp/arazzo-review2-clean-UkPhJt/repo`; all commands passed.
+- Ran `npm test` from that clean clone; all Rust, browser, copy, and build tests passed and `dist/site/` was produced.
+- Ran `cargo run -- demo` from an empty temp directory; exit 0, current directory unchanged, real redacted JSON and self-contained HTML created under a unique `/tmp/arazzo-proof-demo-…` workspace.
+- Ran Playwright Axe on root, Demo, Privacy, Terms, and 404 at mobile/desktop in light/dark: zero violations.
+- Ran `/opt/fleet/lib/verify-url.sh` on root and Demo: both passed.
+- Crawled every landing link; all returned 200 after redirects. Unknown routes returned the designed HTTP 404.
+- Verified hash navigation, full-route focus, browser Back focus, 44 px controls, no mobile overflow, metadata, headers, robots, and sitemap.
 
-The exhaustive finding map is in `.factory/polish-1.md`. Demo isolation is documented in `.factory/demo.md`; sentence counts and terminology are in `.factory/copy-audit.md`.
+The standalone Selenium-based `npx @axe-core/cli` could not launch Chrome in this container. Accessibility was still fully exercised by the repository’s pinned Playwright Axe integration across 20 route/viewport/theme combinations.
 
-## Verification evidence
+## Required next steps
 
-Final fresh clone: `/tmp/arazzo-release-3Rm23C/repo` from commit `02f50a3`.
-
-- Every command in `.factory/claims.json`: 12/12 passed independently.
-- `npm test`: 5 Rust unit tests, 1 doctest, 8 CLI/workflow/claim integration tests, and 10 browser/copy tests passed.
-- Browser coverage: every route at 390×844 and 1440×900 in light and dark themes; zero Axe violations and zero valid-page console errors.
-- Interaction coverage: keyboard scroll region, route/hash/back focus, live announcements, 44×44 targets, reduced motion, 200% text, and no horizontal page overflow passed.
-- Privacy: all public-route requests remained same-origin; cookies, localStorage, sessionStorage, and IndexedDB remained empty through the demo flow.
-- Offline: demo and Privacy reloaded after the browser context was switched offline.
-- `cargo package --allow-dirty`: passed; 27 files, 175.7 KiB unpacked and 45.8 KiB compressed in the clean-clone check.
-- Static budgets: 3.37 kB JavaScript, 14.00 kB CSS, 208 kB hero image.
-- Local Lighthouse: performance 92, accessibility 100, best practices 100, SEO 100 (`.factory/evidence/lighthouse-local.json`).
-- Live Lighthouse: performance 91, accessibility 100, best practices 100, SEO 100 (`.factory/evidence/live/lighthouse-live.json`).
-
-Screenshots:
-
-- `.factory/evidence/home-mobile.png`
-- `.factory/evidence/demo-mobile.png`
-- `.factory/evidence/home-desktop.png`
-- `.factory/evidence/demo-desktop.png`
-- `.factory/evidence/privacy-mobile.png`
-- `.factory/evidence/terms-mobile.png`
-- `.factory/evidence/404-mobile.png`
-- `.factory/evidence/live/root/screenshot-desktop.png`
-- `.factory/evidence/live/root/screenshot-mobile.png`
-- `.factory/evidence/live/demo/screenshot-desktop.png`
-- `.factory/evidence/live/demo/screenshot-mobile.png`
-
-## Deployment and cold live check
-
-Deployment command:
-
-```sh
-npm ci
-npm run build:site
-/opt/fleet/lib/deploy-static.sh arazzo-proof-runner dist/site
-```
-
-Final deployment ID: `2b3830ff-948e-4691-9103-1f4a31466eda`.
-
-Cold public checks after the final deployment:
-
-- `/`, `/?demo=1`, `/privacy/`, `/terms/`, `robots.txt`, `sitemap.xml`, social image, and touch icon: HTTP 200.
-- `/demo`: redirects to `/?demo=1`, then HTTP 200.
-- `/not-a-real-route`: product-authored page with HTTP 404.
-- Factory `verify-url.sh`: root and demo both passed with one `h1`, `lang=en`, a main landmark, image alt text, and zero console errors.
-- Playwright + Axe: 20 public route/theme/viewport combinations passed with zero violations and no valid-page console errors.
-- Live demo reset and storage isolation passed in a fresh 390px context.
-- Live service-worker demo and Privacy reload passed offline.
-
-## Run and verify
-
-```sh
-cargo run -- demo
-npm ci
-npm test
-npm run build:site
-cargo package
-```
-
-## Known gaps and next steps
-
-No acceptance gap remains. Registry publication is intentionally left to factory release automation, as required by the CLI publishing contract.
+1. Repair F-2-1 by making every named claim test assert the complete registered promise.
+2. Apply the navigation, canonical-policy, terminology, and README-claim fixes in F-2-2 through F-2-5.
+3. Rerun every claim command, `npm test`, the live demo/privacy interception, and the complete review checklist after deployment.
