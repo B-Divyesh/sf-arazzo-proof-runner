@@ -19,8 +19,8 @@ const result = document.querySelector<HTMLElement>(".demo-result dd");
 const diff = document.querySelector<HTMLElement>(".diff-note");
 const demoStatus = document.querySelector<HTMLElement>(".demo-status");
 
-toggle?.addEventListener("click", () => {
-  const changed = toggle.getAttribute("aria-pressed") !== "true";
+const setChangedResponse = (changed: boolean) => {
+  if (!toggle) return;
   toggle.setAttribute("aria-pressed", String(changed));
   toggle.textContent = changed ? "Restore baseline response" : "Inject changed response";
   changedStep?.classList.toggle("is-changed", changed);
@@ -32,7 +32,28 @@ toggle?.addEventListener("click", () => {
   if (diff) diff.hidden = !changed;
   if (demoStatus) demoStatus.textContent = changed
     ? "The quoteCart assertion now fails: expected USD, received EUR."
-    : "All specimen assertions pass.";
+    : "All sample assertions pass.";
+};
+
+toggle?.addEventListener("click", () => setChangedResponse(toggle.getAttribute("aria-pressed") !== "true"));
+
+const params = new URLSearchParams(location.search);
+const demoMode = params.get("demo") === "1" || location.pathname === "/demo/" || location.pathname === "/demo";
+const demoBanner = document.querySelector<HTMLElement>(".demo-banner");
+const demoReplay = document.querySelector<HTMLElement>("[data-demo-replay]");
+if (demoMode) {
+  if (demoBanner) demoBanner.hidden = false;
+  if (demoReplay) demoReplay.hidden = false;
+  document.documentElement.dataset.mode = "demo";
+  document.title = "Demo — Arazzo Proof Runner";
+  document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute("href", "https://arazzo-proof-runner.sociobot.in/?demo=1");
+}
+
+document.querySelector<HTMLButtonElement>("[data-reset-demo]")?.addEventListener("click", () => {
+  setChangedResponse(false);
+  demoStatus!.textContent = "Demo reset. All sample assertions pass.";
+  document.querySelector("#sample-report")?.scrollIntoView();
+  toggle?.focus();
 });
 
 const offline = document.querySelector<HTMLElement>(".offline");
@@ -42,3 +63,24 @@ window.addEventListener("offline", updateConnection);
 updateConnection();
 
 if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js"));
+
+const announceAndFocus = () => {
+  const target = location.hash ? document.querySelector<HTMLElement>(location.hash) : document.querySelector<HTMLElement>("h1");
+  const heading = target?.matches("h1,h2") ? target : target?.querySelector<HTMLElement>("h1,h2");
+  if (!heading) return;
+  heading.focus({ preventScroll: true });
+  const status = document.querySelector<HTMLElement>(".route-status");
+  if (status) status.textContent = heading.textContent ?? "Page changed";
+};
+
+window.addEventListener("hashchange", announceAndFocus);
+window.addEventListener("pageshow", event => {
+  const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+  if (event.persisted || navigation?.type === "back_forward" || (location.hash && document.referrer.startsWith(location.origin))) {
+    announceAndFocus();
+  }
+});
+
+if (location.pathname !== "/" && location.pathname !== "/index.html") {
+  requestAnimationFrame(announceAndFocus);
+}

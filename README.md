@@ -1,21 +1,31 @@
 # Arazzo Proof Runner
 
-`arazzo-proof` is a small, local runner for an auditable subset of the OpenAPI Arazzo specification. It executes a multi-step workflow against an explicitly selected environment and writes a stable, redacted proof bundle for CI and integration review.
+`arazzo-proof` runs the documented Arazzo 1.0.x features on your machine. Choose an environment and run a multi-step workflow. The CLI writes redacted JSON and HTML reports for CI or review.
 
-It is for API owners adopting Arazzo who need reproducible evidence—not another general-purpose API client. Runs stay on your machine. There is no telemetry, account, upload, or cloud dependency.
+It is for API owners who need step-by-step evidence while adopting Arazzo. The CLI has no account, telemetry, upload, or hosted service.
+
+## Try the bundled demo
+
+The demo starts its own loopback API and needs no setup or network service. It creates a unique temporary workspace and prints the generated report path.
+
+```sh
+cargo run -- demo
+```
+
+The same sample is visible at <https://arazzo-proof-runner.sociobot.in/?demo=1>. See [.factory/demo.md](.factory/demo.md) for its isolation contract.
 
 ## Install
 
-Build the single binary with stable Rust:
+Build the single `arazzo-proof` binary with Rust:
 
 ```sh
 cargo install --path .
 arazzo-proof --help
 ```
 
-The package starts at `0.1.0`. Factory release automation owns registry publishing; maintainers can validate the release artifact with `cargo package`.
+The current package version is `0.1.0`. Run `cargo package` to validate the release package. Factory automation owns registry publishing.
 
-## Usage
+## Run and compare workflows
 
 Run one workflow and write `proof.json` plus a self-contained `report.html`:
 
@@ -26,24 +36,26 @@ arazzo-proof run examples/pet-order.arazzo.yaml \
   --out proof/current
 ```
 
-Print a machine-readable summary to stdout (evidence still goes to `--out`):
+The example above expects a compatible API at `127.0.0.1:4010`. Use `arazzo-proof demo` for a first run without that API.
+
+Print a JSON summary to stdout while writing the same proof bundle:
 
 ```sh
 arazzo-proof run workflow.yaml --env ci.env.yaml --out proof/current --json
 ```
 
-Compare two proof artifacts:
+Compare two `proof.json` files:
 
 ```sh
 arazzo-proof compare proof/baseline/proof.json proof/current/proof.json \
   --out proof/diff
 ```
 
-This writes `comparison.json` and a one-file `comparison.html`. A changed status, body, output, or assertion is called out at the step where it changed.
+This writes `comparison.json` and a self-contained `comparison.html`. The report marks each changed status, body, output, or assertion at its workflow step.
 
 ### Environment file
 
-An environment file is always required; there is no implicit production target. YAML and JSON are accepted:
+Every run command requires an environment file. The CLI accepts YAML and JSON files:
 
 ```yaml
 name: local
@@ -60,52 +72,63 @@ redact:
   - /owner/email
 ```
 
-- `baseUrl` overrides the OpenAPI server for every operation.
-- `inputs` supplies workflow inputs referenced as `$inputs.petName`.
+- `baseUrl` replaces every OpenAPI server for the run.
+- `inputs` supplies workflow inputs such as `$inputs.petName`.
 - `values` supplies the runner extension `$env.tenant`.
-- `headers` applies request headers. `Authorization`, cookies, API-key-like headers, and every value listed in `secrets` are replaced with `[REDACTED]` before evidence is serialized.
-- `redact` contains JSON Pointers removed from captured request and response bodies.
+- `headers` applies request headers.
+- Sensitive headers and listed secrets become `[REDACTED]` in the proof bundle.
+- JSON Pointers under `redact` replace matching request and response values.
 
 ### Supported Arazzo 1.0.x subset
 
-- Local `sourceDescriptions` pointing to OpenAPI 3.0/3.1 YAML or JSON files.
-- `workflowId`, workflow `inputs`, ordered `steps`, and step `outputs`.
-- Operations selected by `operationId` or local `operationPath` JSON Pointer.
-- Path, query, header, and cookie parameters; JSON `requestBody.payload`.
-- Runtime expressions: `$inputs.name`, `$env.name`, `$steps.stepId.outputs.name`, `$response.body#/pointer`, `$response.header.Name`, and `$statusCode` in criteria.
-- Success criteria comparisons: `==`, `!=`, `>`, `>=`, `<`, `<=` against strings, numbers, booleans, and `null`.
-- Stable JSON/HTML evidence with request/response metadata, redaction, outputs, and assertion results.
+- Local OpenAPI 3.0 or 3.1 YAML and JSON sources.
+- Workflow inputs, ordered steps, and step outputs.
+- Operations selected by `operationId` or a local `operationPath`.
+- Path, query, header, and cookie parameters.
+- JSON request bodies and chained output expressions.
+- Response body, response header, and status expressions.
+- The operators `==`, `!=`, `>`, `>=`, `<`, and `<=`.
+- Redacted JSON and self-contained HTML proof bundles.
 
-Unsupported features fail clearly instead of being guessed: remote source URLs, callbacks/webhooks, external `$ref`, OAuth flows, non-JSON request bodies, JSONPath criteria, retry policies, and success actions/failure actions.
+The CLI rejects unsupported features with an error. These include:
+
+- remote sources, external references, callbacks, and webhooks;
+- OAuth flows and retry policies;
+- non-JSON request bodies and JSONPath criteria;
+- success and failure actions.
+
+The error names the affected step or source. Invalid or unsupported input exits 2 before writing a partial proof bundle.
 
 ## Exit codes
 
-- `0`: command completed and all assertions passed; comparisons are unchanged.
-- `1`: the workflow ran but an assertion failed, or a comparison found changes.
-- `2`: invalid input, unsupported syntax, I/O, or request execution failure.
+- `0`: the run passed, or a comparison found no changes.
+- `1`: an assertion failed, or a comparison found changes.
+- `2`: input, syntax, I/O, or request execution failed.
 
-`--json` never changes these exit-code semantics and the CLI never prompts, so it is safe in CI.
+`--json` keeps the same exit codes. The CLI does not prompt for input.
 
 ## Develop and verify
 
 ```sh
-cargo test
-npm install
+npm ci
 npm test
 npm run build:site       # static site -> dist/site/
-npm run build            # same deploy build
 cargo package
 ```
 
-The integration suite runs three representative workflows against an in-process HTTP server and checks chaining, parameter substitution, redaction, and a visible changed assertion. The landing/docs site is plain HTML/CSS built by Vite, with no runtime dependencies or analytics.
+The test suite covers the documented CLI, browser, accessibility, privacy, and offline behavior. Claim commands are listed in [.factory/claims.json](.factory/claims.json).
+
+## Deploy
+
+The factory deploys `dist/site/` as a static site. Build it with `npm run build:site`. Do not deploy the CLI from this repository.
 
 ## Repository layout
 
-- `src/` — typed runner, redaction, comparison, and HTML rendering library.
-- `tests/` — CLI and deterministic workflow integration tests.
-- `examples/` — runnable Arazzo and environment examples.
-- `site/` — static install guide and proof-report specimen.
-- `.factory/design.md` — product-specific visual system and asset provenance.
+- `src/` — runner, redaction, comparison, and report library.
+- `tests/` — CLI and workflow integration tests.
+- `examples/` — bundled Arazzo and environment examples.
+- `site/` — static guide and interactive sample report.
+- `.factory/design.md` — visual system and asset provenance.
 
 ## License
 

@@ -1,0 +1,20 @@
+openapi: 3.1.0
+info:
+  title: Bundled checkout fixture
+  version: 1.0.0
+paths:
+  /carts:
+    post:
+      operationId: createCart
+      responses:
+        '201': {description: Created}
+  /carts/{cartId}/items:
+    post:
+      operationId: addItem
+      responses:
+        '200': {description: Added}
+  /carts/{cartId}/quote:
+    get:
+      operationId: quoteCart
+      responses:
+        '200': {description: Quoted}

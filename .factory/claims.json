@@ -1,0 +1,86 @@
+[
+  {
+    "id": "bundled-demo",
+    "claim": "The bundled demo runs a three-step checkout locally and writes a redacted JSON proof plus self-contained HTML report in a unique temporary workspace.",
+    "where": "landing page, README, CLI help",
+    "test": "cargo test --test claims claim_bundled_demo_is_isolated_and_writes_real_proof",
+    "sandbox": "fresh process; loopback fixture created by the CLI; unique operating-system temporary directory; inspect both output files"
+  },
+  {
+    "id": "redaction-and-chaining",
+    "claim": "Workflow outputs can feed later requests, while authorization, listed secrets, and configured JSON pointers are redacted before serialization.",
+    "where": "landing sample report, README, privacy",
+    "test": "cargo test --test workflows chained_workflow_produces_redacted_stable_evidence",
+    "sandbox": "fresh temporary directory and in-process HTTP fixture seeded with unique secret values"
+  },
+  {
+    "id": "operation-selection-and-parameters",
+    "claim": "The documented subset supports YAML and JSON files, OpenAPI 3.0 and 3.1, both operation selectors, all four parameter locations, and six comparison operators.",
+    "where": "landing supported-features ledger, README",
+    "test": "cargo test --test workflows operation_path_and_parameter_substitution_work",
+    "sandbox": "fresh temporary directory and in-process HTTP fixture; paired with the 3.1 chaining fixture in the same test binary"
+  },
+  {
+    "id": "comparison-report",
+    "claim": "Comparison output marks a changed assertion at its workflow step and writes JSON plus self-contained HTML.",
+    "where": "landing sample report, README",
+    "test": "cargo test --test workflows changed_response_assertion_is_visible_in_comparison_report",
+    "sandbox": "fresh temporary directory with baseline and changed loopback responses"
+  },
+  {
+    "id": "exit-codes-and-json",
+    "claim": "Run and compare return exit 0 for success, 1 for assertion or comparison changes, and 2 for invalid input; --json emits parseable output without prompting.",
+    "where": "README exit codes and run examples",
+    "test": "cargo test --test cli run_command_writes_bundle_and_returns_assertion_exit_code",
+    "sandbox": "fresh temporary directory and one-request loopback fixture"
+  },
+  {
+    "id": "cli-help",
+    "claim": "The CLI documents demo, run, and compare as non-interactive subcommands.",
+    "where": "README install and usage",
+    "test": "cargo test --test cli help_documents_non_interactive_commands",
+    "sandbox": "fresh CLI process with --help"
+  },
+  {
+    "id": "unsupported-errors",
+    "claim": "Advertised unsupported Arazzo and OpenAPI features return a named error before any request or partial proof is written.",
+    "where": "landing limits ledger, README",
+    "test": "cargo test --test claims claim_unsupported_features_name_the_problem_before_requests",
+    "sandbox": "fresh temporary fixture for each unsupported syntax family; unreachable loopback target detects validation ordering"
+  },
+  {
+    "id": "single-binary-mit",
+    "claim": "Version 0.1.0 ships one arazzo-proof binary under the MIT License.",
+    "where": "landing facts and footer, README, terms",
+    "test": "cargo test --test claims claim_package_declares_one_binary_and_mit_license",
+    "sandbox": "repository manifest and shipped license"
+  },
+  {
+    "id": "web-demo-isolation",
+    "claim": "One click opens the sample report in demo mode; reset restores it, and demo mode writes no cookies or browser storage.",
+    "where": "landing first screen and demo banner",
+    "test": "npm run build:site && node --test --test-name-pattern='@claim:web-demo-isolation' site/tests/site.test.mjs",
+    "sandbox": "fresh 390px browser context with request, cookie, localStorage, sessionStorage, and IndexedDB inspection"
+  },
+  {
+    "id": "offline-site",
+    "claim": "The guide, demo, and privacy page remain readable offline after the first visit.",
+    "where": "offline banner and privacy page",
+    "test": "npm run build:site && node --test --test-name-pattern='@claim:offline-site' site/tests/site.test.mjs",
+    "sandbox": "fresh browser context; activate service worker online, then set the context offline and reload"
+  },
+  {
+    "id": "site-privacy",
+    "claim": "The documentation site loads no analytics, remote scripts, accounts, cookies, or persistent application data.",
+    "where": "landing facts and privacy page",
+    "test": "npm run build:site && node --test --test-name-pattern='@claim:site-privacy' site/tests/site.test.mjs",
+    "sandbox": "fresh browser context across every public route with all requests and storage intercepted"
+  },
+  {
+    "id": "routing-and-metadata",
+    "claim": "Home, demo, privacy, terms, and unknown routes have product-authored titles, metadata, navigation, focus behavior, and 404 treatment.",
+    "where": "site routes",
+    "test": "npm run build:site && node --test --test-name-pattern='@claim:routing-and-metadata' site/tests/site.test.mjs",
+    "sandbox": "fresh 390px browser context loading each route directly"
+  }
+]

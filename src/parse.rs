@@ -51,6 +51,8 @@ pub(crate) struct Step {
     pub on_success: Vec<Value>,
     #[serde(default)]
     pub on_failure: Vec<Value>,
+    #[serde(default)]
+    pub retry_after: Option<Value>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -123,6 +125,7 @@ pub(crate) fn load_sources(doc: &ArazzoDocument, arazzo_path: &Path) -> Result<V
             }
             let path = root.join(&source.url);
             let document: Value = read_yaml_or_json(&path)?;
+            validate_openapi_source(source, &document)?;
             Ok(OpenApiSource {
                 name: source.name.clone(),
                 path,
@@ -130,4 +133,83 @@ pub(crate) fn load_sources(doc: &ArazzoDocument, arazzo_path: &Path) -> Result<V
             })
         })
         .collect()
+}
+
+fn validate_openapi_source(source: &SourceDescription, document: &Value) -> Result<()> {
+    let version = document
+        .get("openapi")
+        .and_then(Value::as_str)
+        .ok_or_else(|| {
+            anyhow::anyhow!(
+                "sourceDescription '{}' is not an OpenAPI document",
+                source.name
+            )
+        })?;
+    if !(version.starts_with("3.0") || version.starts_with("3.1")) {
+        bail!(
+            "sourceDescription '{}' uses unsupported OpenAPI version '{}'",
+            source.name,
+            version
+        );
+    }
+    if document.get("webhooks").is_some() {
+        bail!(
+            "sourceDescription '{}' uses webhooks, which are unsupported",
+            source.name
+        );
+    }
+    if has_key(document, "callbacks") {
+        bail!(
+            "sourceDescription '{}' uses callbacks, which are unsupported",
+            source.name
+        );
+    }
+    if has_external_ref(document) {
+        bail!(
+            "sourceDescription '{}' uses an external $ref, which is unsupported",
+            source.name
+        );
+    }
+    if has_oauth_scheme(document) {
+        bail!(
+            "sourceDescription '{}' uses an OAuth flow, which is unsupported",
+            source.name
+        );
+    }
+    Ok(())
+}
+
+fn has_key(value: &Value, wanted: &str) -> bool {
+    match value {
+        Value::Object(map) => map
+            .iter()
+            .any(|(key, child)| key == wanted || has_key(child, wanted)),
+        Value::Array(items) => items.iter().any(|child| has_key(child, wanted)),
+        _ => false,
+    }
+}
+
+fn has_external_ref(value: &Value) -> bool {
+    match value {
+        Value::Object(map) => map.iter().any(|(key, child)| {
+            (key == "$ref"
+                && child
+                    .as_str()
+                    .is_some_and(|reference| !reference.starts_with('#')))
+                || has_external_ref(child)
+        }),
+        Value::Array(items) => items.iter().any(has_external_ref),
+        _ => false,
+    }
+}
+
+fn has_oauth_scheme(value: &Value) -> bool {
+    match value {
+        Value::Object(map) => {
+            map.get("type").and_then(Value::as_str) == Some("oauth2")
+                || map.values().any(has_oauth_scheme)
+        }
+        Value::Array(items) => items.iter().any(has_oauth_scheme),
+        _ => false,
+    }
 }

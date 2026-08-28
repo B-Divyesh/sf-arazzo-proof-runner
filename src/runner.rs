@@ -165,6 +165,12 @@ fn validate_workflow(workflow: &Workflow) -> Result<()> {
                 step.step_id
             );
         }
+        if step.retry_after.is_some() {
+            bail!(
+                "step '{}' uses a retry policy, which is unsupported",
+                step.step_id
+            );
+        }
         if step
             .success_criteria
             .iter()

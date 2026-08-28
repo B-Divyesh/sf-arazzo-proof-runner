@@ -113,6 +113,7 @@ redact:
 }
 
 #[test]
+// @claim:redaction-and-chaining
 fn chained_workflow_produces_redacted_stable_evidence() {
     let server = serve(vec![
         (
@@ -176,17 +177,28 @@ workflows:
 }
 
 #[test]
+// @claim:operation-selection-and-parameters
 fn operation_path_and_parameter_substitution_work() {
     let server = serve(vec![("GET /health?verbose=true ", r#"{"healthy":true}"#)]);
     let temp = tempdir().unwrap();
-    write(&temp.path().join("openapi.yaml"), &common_openapi(&server));
-    write(&temp.path().join("env.yaml"), &env_file(&server));
+    let openapi: serde_json::Value =
+        serde_yaml::from_str(&common_openapi(&server).replace("openapi: 3.1.0", "openapi: 3.0.3"))
+            .unwrap();
+    write(
+        &temp.path().join("openapi.json"),
+        &serde_json::to_string_pretty(&openapi).unwrap(),
+    );
+    let environment: serde_json::Value = serde_yaml::from_str(&env_file(&server)).unwrap();
+    write(
+        &temp.path().join("env.json"),
+        &serde_json::to_string_pretty(&environment).unwrap(),
+    );
     write(
         &temp.path().join("flow.yaml"),
         r#"arazzo: 1.0.0
 info: {title: Health, version: 1.0.0}
 sourceDescriptions:
-  - {name: api, url: ./openapi.yaml, type: openapi}
+  - {name: api, url: ./openapi.json, type: openapi}
 workflows:
   - workflowId: healthReview
     steps:
@@ -195,24 +207,31 @@ workflows:
         parameters:
           - {name: verbose, in: query, value: true}
           - {name: X-Tenant, in: header, value: '{$env.tenant}'}
+          - {name: session, in: cookie, value: sample-cookie}
         successCriteria:
+          - {condition: '$statusCode == 200'}
+          - {condition: '$statusCode != 201'}
+          - {condition: '$statusCode > 199'}
           - {condition: '$statusCode >= 200'}
-          - {condition: '$statusCode < 300'}
+          - {condition: '$statusCode < 201'}
+          - {condition: '$statusCode <= 200'}
           - {condition: '$response.header.X-Fixture == "stable"'}
 "#,
     );
     let proof = run_workflow(&RunOptions {
         arazzo_path: temp.path().join("flow.yaml"),
-        environment_path: temp.path().join("env.yaml"),
+        environment_path: temp.path().join("env.json"),
         workflow_id: None,
     })
     .unwrap();
     assert_eq!(proof.result, RunStatus::Passed);
-    assert_eq!(proof.steps[0].assertions.len(), 3);
+    assert_eq!(proof.steps[0].assertions.len(), 7);
     assert_eq!(proof.steps[0].request.headers["X-Tenant"], "sandbox");
+    assert_eq!(proof.steps[0].request.headers["Cookie"], "[REDACTED]");
 }
 
 #[test]
+// @claim:comparison-report
 fn changed_response_assertion_is_visible_in_comparison_report() {
     let baseline_server = serve(vec![("GET /version ", r#"{"version":1}"#)]);
     let current_server = serve(vec![("GET /version ", r#"{"version":2}"#)]);

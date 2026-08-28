@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite site --host 0.0.0.0",
     "build": "npm run build:site",
-    "build:site": "vite build site --outDir ../dist/site --emptyOutDir",
+    "build:site": "vite build --config site/vite.config.js",
     "test": "cargo test && npm run build:site && npm run test:site",
     "test:site": "node --test site/tests/*.test.mjs"
   },

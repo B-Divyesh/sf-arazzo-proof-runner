@@ -4,149 +4,81 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#efede4" />
+    <title>Arazzo Proof Runner — run workflows and save proof</title>
+    <meta name="description" content="Run Arazzo workflows locally and save redacted JSON and HTML proof for API reviews." />
     <link rel="canonical" href="https://arazzo-proof-runner.sociobot.in/" />
-    <meta
-      name="description"
-      content="Run a practical Arazzo subset locally and keep redacted JSON and HTML evidence for CI and integration review."
-    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Arazzo Proof Runner — run workflows and save proof" />
+    <meta property="og:description" content="Run Arazzo workflows locally and save redacted JSON and HTML proof for API reviews." />
+    <meta property="og:image" content="https://arazzo-proof-runner.sociobot.in/social-card.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Arazzo Proof Runner — run workflows and save proof" />
+    <meta name="twitter:description" content="Run Arazzo workflows locally and save redacted JSON and HTML proof for API reviews." />
+    <meta name="twitter:image" content="https://arazzo-proof-runner.sociobot.in/social-card.jpg" />
     <link rel="icon" href="/mark.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="stylesheet" href="/src/style.css" />
-    <title>Arazzo Proof Runner — run the workflow, keep the proof</title>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    <div class="offline" role="status" hidden>
-      Offline. The docs and proof specimen still work locally.
-    </div>
+    <div class="offline" role="status" hidden>Offline. The guide and sample report remain available.</div>
+    <section class="demo-banner" aria-label="Demo mode" hidden>
+      <strong>Demo — sample data, nothing is saved</strong>
+      <span>This page uses an in-memory sample and never reads browser storage.</span>
+      <div><button type="button" data-reset-demo>Reset demo</button><a href="/#install" data-start-real>Start for real</a></div>
+    </section>
     <header class="site-header">
-      <a class="brand" href="/" aria-label="Arazzo Proof Runner home">
-        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-        <span>Arazzo / proof</span>
-      </a>
+      <a class="brand" href="/" aria-label="Arazzo Proof Runner home"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>Arazzo / proof</span></a>
       <nav aria-label="Primary navigation">
-        <a href="#install">Install</a>
-        <a href="#subset">Subset</a>
-        <a href="#specimen">Specimen</a>
-        <a href="https://github.com/B-Divyesh/sf-arazzo-proof-runner">Source</a>
+        <a href="/?demo=1#sample-report">Demo</a><a href="#how">How it works</a><a href="#limits">Limits</a>
+        <a href="https://github.com/B-Divyesh/sf-arazzo-proof-runner">Source on GitHub <span class="sr-only">(external)</span></a>
       </nav>
     </header>
 
     <main id="main">
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-copy">
-          <p class="eyebrow">Local Arazzo evidence / v0.1</p>
-          <h1 id="hero-title">Run the workflow. Keep the proof.</h1>
-          <p class="lede">
-            Execute a practical Arazzo subset, trace every substitution and assertion,
-            then carry one redacted report into CI or review.
-          </p>
-          <div class="hero-actions">
-            <a class="button primary" href="#install">Install the runner</a>
-            <a class="button secondary" href="#specimen">Inspect a proof</a>
-          </div>
-          <ul class="trust-line" aria-label="Product properties">
-            <li>No account</li>
-            <li>No telemetry</li>
-            <li>One binary</li>
-          </ul>
+          <p class="eyebrow">CLI for API workflow reviews</p>
+          <h1 id="hero-title" tabindex="-1">Run Arazzo workflows and save proof</h1>
+          <p class="lede">For API owners testing multi-step workflows, it records redacted requests, responses, and assertion results.</p>
+          <div class="hero-actions"><a class="button primary" href="/?demo=1#sample-report">Try it with sample data</a><a class="button secondary" href="#install">View install command</a></div>
+          <p class="action-note">Runs a bundled checkout workflow and opens its report.</p>
+          <ul class="trust-line" aria-label="Product facts"><li>Runs locally.</li><li>No account or telemetry.</li><li>Free and MIT licensed.</li></ul>
         </div>
-        <figure class="hero-art">
-          <img
-            src="/proof-strata.webp"
-            width="1536"
-            height="1024"
-            fetchpriority="high"
-            alt="Three rough concrete evidence slabs joined in sequence by a thin line of moss"
-          />
-          <figcaption>Inputs → requests → assertions. Evidence set in concrete.</figcaption>
-        </figure>
+        <figure class="hero-art"><img src="/proof-strata.webp" width="1536" height="1024" fetchpriority="high" alt="Three concrete workflow slabs connected by a line of moss" /><figcaption>A report links each input, request, and assertion.</figcaption></figure>
       </section>
 
       <section class="install" id="install" aria-labelledby="install-title">
-        <div>
-          <p class="eyebrow">01 / Start local</p>
-          <h2 id="install-title">A runner you can audit</h2>
-          <p>
-            Build with stable Rust. The CLI requires an environment file, never prompts in CI,
-            and never uploads a run.
-          </p>
-        </div>
-        <div class="command-block">
-          <div class="command-head"><span>Terminal</span><button type="button" data-copy="#install-command">Copy command</button></div>
-          <pre id="install-command"><code>cargo install --git https://github.com/B-Divyesh/sf-arazzo-proof-runner
-arazzo-proof run checkout.arazzo.yaml \
-  --env environments/ci.yaml \
-  --out proof/current</code></pre>
-          <p class="copy-status" aria-live="polite"></p>
-        </div>
+        <div><p class="eyebrow">01 / Install the local CLI</p><h2 id="install-title" tabindex="-1">Install the CLI</h2><p>Install from the repository. Then run the bundled demo without an account or API setup.</p></div>
+        <div class="command-block"><div class="command-head"><span>Terminal</span><button type="button" data-copy="#install-command">Copy command</button></div><pre id="install-command" tabindex="0" aria-label="Horizontally scrollable install and demo commands"><code>cargo install --git https://github.com/B-Divyesh/sf-arazzo-proof-runner
+arazzo-proof demo</code></pre><p class="copy-status" aria-live="polite"></p></div>
       </section>
 
-      <section class="proof" id="specimen" aria-labelledby="proof-title">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">02 / Proof specimen</p>
-            <h2 id="proof-title">A changed response has a place to land</h2>
-          </div>
-          <button class="mode-toggle" type="button" aria-pressed="false" data-demo-toggle>
-            Inject changed response
-          </button>
-        </div>
-        <p class="demo-status sr-only" aria-live="polite">All specimen assertions pass.</p>
-
-        <ol class="workflow" aria-label="Example workflow evidence">
-          <li class="workflow-step">
-            <span class="step-number">01</span>
-            <div class="step-slab">
-              <div class="step-head"><span><b>createCart</b><small>POST /carts</small></span><strong class="stamp pass">✓ Pass</strong></div>
-              <dl><div><dt>status</dt><dd>201</dd></div><div><dt>output</dt><dd>cartId = crt_17</dd></div></dl>
-            </div>
-          </li>
-          <li class="workflow-step">
-            <span class="step-number">02</span>
-            <div class="step-slab">
-              <div class="step-head"><span><b>addItem</b><small>POST /carts/crt_17/items</small></span><strong class="stamp pass">✓ Pass</strong></div>
-              <dl><div><dt>substitution</dt><dd>$steps.createCart.outputs.cartId</dd></div><div><dt>status</dt><dd>200</dd></div></dl>
-            </div>
-          </li>
-          <li class="workflow-step changed-step">
-            <span class="step-number">03</span>
-            <div class="step-slab">
-              <div class="step-head"><span><b>quoteCart</b><small>GET /carts/crt_17/quote</small></span><strong class="stamp demo-stamp pass">✓ Pass</strong></div>
-              <dl><div><dt>assertion</dt><dd>$response.body#/currency == "USD"</dd></div><div class="demo-result"><dt>actual</dt><dd>"USD"</dd></div></dl>
-              <div class="diff-note" hidden><span>Baseline</span><code>"USD"</code><span>Current</span><code>"EUR"</code></div>
-            </div>
-          </li>
+      <section class="proof" id="sample-report" aria-labelledby="proof-title">
+        <div class="section-heading"><div><p class="eyebrow">02 / Sample report</p><h2 id="proof-title" tabindex="-1">See exactly where a response changed</h2></div><button class="mode-toggle" type="button" aria-pressed="false" data-demo-toggle>Inject changed response</button></div>
+        <div class="terminal-replay" data-demo-replay hidden aria-label="Recorded output from the real bundled demo command"><span>$ arazzo-proof demo</span><strong>checkout: 3 steps, 3 assertions passed</strong><span>report: /tmp/arazzo-proof-demo…/proof/report.html</span></div>
+        <p class="demo-status sr-only" aria-live="polite">All sample assertions pass.</p>
+        <ol class="workflow" aria-label="Checkout workflow evidence">
+          <li class="workflow-step"><span class="step-number">01</span><div class="step-slab"><div class="step-head"><span><b>createCart</b><small>POST /carts</small></span><strong class="stamp pass">✓ Pass</strong></div><dl><div><dt>Status</dt><dd>201</dd></div><div><dt>Output</dt><dd>cartId = crt_17</dd></div></dl></div></li>
+          <li class="workflow-step"><span class="step-number">02</span><div class="step-slab"><div class="step-head"><span><b>addItem</b><small>POST /carts/crt_17/items</small></span><strong class="stamp pass">✓ Pass</strong></div><dl><div><dt>Input</dt><dd>$steps.createCart.outputs.cartId</dd></div><div><dt>Status</dt><dd>200</dd></div></dl></div></li>
+          <li class="workflow-step changed-step"><span class="step-number">03</span><div class="step-slab"><div class="step-head"><span><b>quoteCart</b><small>GET /carts/crt_17/quote</small></span><strong class="stamp demo-stamp pass">✓ Pass</strong></div><dl><div><dt>Assertion</dt><dd>$response.body#/currency == "USD"</dd></div><div class="demo-result"><dt>Actual</dt><dd>"USD"</dd></div></dl><div class="diff-note" hidden><span>Expected</span><code>"USD"</code><span>Received</span><code>"EUR"</code></div></div></li>
         </ol>
-        <aside class="artifact-note">
-          <span class="artifact-mark" aria-hidden="true">↳</span>
-          <div><b>Two durable files</b><p><code>proof.json</code> for machines. <code>report.html</code> for review. Authorization and configured secrets are replaced before either is written.</p></div>
-        </aside>
+        <div class="artifact-note"><span class="artifact-mark" aria-hidden="true">↳</span><div><b>Two output files</b><p><code>proof.json</code> records machine-readable evidence. The self-contained <code>report.html</code> is ready for review.</p><p>The CLI replaces authorization headers and configured secrets with <code>[REDACTED]</code> before writing either file.</p></div></div>
       </section>
 
-      <section class="subset" id="subset" aria-labelledby="subset-title">
-        <div>
-          <p class="eyebrow">03 / Deliberate subset</p>
-          <h2 id="subset-title">Small enough to understand. Useful enough to ship.</h2>
-        </div>
-        <div class="ledger">
-          <section><span class="ledger-mark yes" aria-hidden="true">✓</span><h3>Runs today</h3><ul><li>Local OpenAPI 3.0 / 3.1 sources</li><li>Operation IDs and local operation paths</li><li>Path, query, header, cookie parameters</li><li>JSON payloads and chained outputs</li><li>Six comparison operators</li></ul></section>
-          <section><span class="ledger-mark no" aria-hidden="true">—</span><h3>Fails clearly</h3><ul><li>Remote sources and external references</li><li>OAuth flows and callbacks</li><li>JSONPath criteria</li><li>Success and failure actions</li><li>Non-JSON request bodies</li></ul></section>
-        </div>
-        <div class="failure-note"><b>Unsupported is an error, not a guess.</b><p>The runner names the step and feature, exits 2, and writes no partial proof.</p></div>
-      </section>
+      <section class="how" id="how" aria-labelledby="how-title"><p class="eyebrow">03 / From source to report</p><h2 id="how-title" tabindex="-1">How it works</h2><ol class="how-list"><li><span>01</span><div><h3>Choose an Arazzo file</h3><p>Point the CLI to a local workflow and an explicit environment file.</p></div></li><li><span>02</span><div><h3>Run against an environment</h3><p>The CLI calls only the base URL selected in that file.</p></div></li><li><span>03</span><div><h3>Open the redacted report</h3><p>Review each request, response, output, and assertion by workflow step.</p></div></li></ol></section>
 
-      <section class="final-cta" aria-labelledby="cta-title">
-        <p class="eyebrow">Make the run reviewable</p>
-        <h2 id="cta-title">Replace pasted snippets with one stable artifact.</h2>
-        <a class="button primary" href="#install">Run your first proof</a>
-      </section>
+      <section class="privacy-limits" id="limits" aria-labelledby="limits-title"><p class="eyebrow">04 / Boundaries</p><h2 id="limits-title" tabindex="-1">What the CLI does not do</h2><div class="boundary-grid"><div><h3>No hosted runner</h3><p>The site does not receive workflow files or proof bundles. Your selected API still receives the requests you run.</p></div><div><h3>No secret discovery</h3><p>The CLI redacts configured secrets and sensitive headers. Review response bodies before sharing a report.</p></div></div></section>
+
+      <section class="subset" id="subset" aria-labelledby="subset-title"><p class="eyebrow">05 / Documented boundary</p><h2 id="subset-title" tabindex="-1">Supported Arazzo features and explicit limits</h2><div class="ledger"><section><span class="ledger-mark yes" aria-hidden="true">✓</span><h3>Supported features</h3><ul><li>Local OpenAPI 3.0 and 3.1 sources</li><li>Operation IDs and local operation paths</li><li>Path, query, header, and cookie parameters</li><li>JSON payloads and chained outputs</li><li>Six comparison operators</li></ul></section><section><span class="ledger-mark no" aria-hidden="true">—</span><h3>Unsupported features</h3><ul><li>Remote sources and external references</li><li>OAuth flows and callbacks</li><li>JSONPath criteria</li><li>Success and failure actions</li><li>Non-JSON request bodies</li></ul></section></div><div class="failure-note"><b>Unsupported Arazzo features return an error.</b><p>The CLI names the step and feature, exits 2, and writes no partial proof bundle.</p></div></section>
+
+      <section class="final-cta" aria-labelledby="cta-title"><p class="eyebrow">Review one complete run</p><h2 id="cta-title">Share one HTML report instead of pasted response snippets</h2><a class="button primary" href="/?demo=1#sample-report">Try it with sample data</a></section>
     </main>
 
-    <footer class="site-footer">
-      <div><span class="brand-mark small" aria-hidden="true"><i></i><i></i><i></i></span><b>Arazzo Proof Runner</b></div>
-      <p>Free, local, MIT licensed. Built for an evolving open standard.</p>
-      <nav aria-label="Footer navigation"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-arazzo-proof-runner">GitHub</a></nav>
-    </footer>
+    <footer class="site-footer"><div><span class="brand-mark small" aria-hidden="true"><i></i><i></i><i></i></span><b>Arazzo Proof Runner</b></div><p>Run Arazzo workflows locally and save redacted proof bundles. <span class="build-id">v0.1.0 · polish-1</span></p><nav aria-label="Footer navigation"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-arazzo-proof-runner">GitHub <span class="sr-only">(external)</span></a></nav></footer>
+    <div class="route-status sr-only" aria-live="polite"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -1,0 +1,38 @@
+arazzo: 1.0.1
+info:
+  title: Bundled checkout proof
+  version: 1.0.0
+sourceDescriptions:
+  - name: checkoutApi
+    url: ./checkout.openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: checkout
+    steps:
+      - stepId: createCart
+        operationId: createCart
+        successCriteria:
+          - condition: $statusCode == 201
+        outputs:
+          cartId: $response.body#/id
+      - stepId: addItem
+        operationId: addItem
+        parameters:
+          - name: cartId
+            in: path
+            value: $steps.createCart.outputs.cartId
+        requestBody:
+          contentType: application/json
+          payload:
+            sku: moss-biscuit
+            quantity: 1
+        successCriteria:
+          - condition: $response.body#/accepted == true
+      - stepId: quoteCart
+        operationId: quoteCart
+        parameters:
+          - name: cartId
+            in: path
+            value: $steps.createCart.outputs.cartId
+        successCriteria:
+          - condition: $response.body#/currency == "USD"
